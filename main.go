@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"time"
-	application "user-center/internal/application/impl"
+	"user-center/internal/application/impl"
 	"user-center/internal/infrastructure/db/mysql"
 	"user-center/internal/infrastructure/logger"
 	"user-center/internal/infrastructure/persistence"

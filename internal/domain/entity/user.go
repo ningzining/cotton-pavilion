@@ -1,12 +1,11 @@
 package entity
 
 import (
-	"gorm.io/gorm"
 	"user-center/internal/infrastructure/db/mysql"
 )
 
 type User struct {
-	gorm.Model
+	BaseModel
 	Username string
 	Mobile   string
 	Email    string
