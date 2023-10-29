@@ -6,8 +6,9 @@ import (
 	"go.uber.org/zap"
 	"time"
 	application "user-center/internal/application/impl"
-	repoistory "user-center/internal/domain/repository/impl"
+	"user-center/internal/infrastructure/db/mysql"
 	"user-center/internal/infrastructure/logger"
+	"user-center/internal/infrastructure/persistence"
 	"user-center/internal/interfaces"
 )
 
@@ -24,14 +25,17 @@ func main() {
 		},
 	))
 
-	// 初始化依赖
-	repo := repoistory.New()
-	app := application.New(repo)
-	userHandler := interfaces.NewUser(app.IUserApplication)
+	// 初始化repo层
+	repositories := persistence.NewRepositories(mysql.DB())
+	// 初始化应用层
+	app := application.New(repositories)
+	// 初始化接口层
+	userHandler := interfaces.NewUser(app)
 
 	// 注册路由
 	v1Group := engine.Group("/v1")
 	v1Group.POST("/user/register", userHandler.Register)
+	v1Group.POST("/user/login", userHandler.Login)
 
 	// 启动http服务器
 	if err := engine.Run(":8080"); err != nil {

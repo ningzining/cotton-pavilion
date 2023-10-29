@@ -2,15 +2,15 @@ package application
 
 import (
 	"user-center/internal/application"
-	"user-center/internal/domain/repository/impl"
+	"user-center/internal/infrastructure/persistence"
 )
 
 type Application struct {
 	application.IUserApplication
 }
 
-func New(repo *impl.Repository) *Application {
+func New(repo *persistence.Repositories) *Application {
 	return &Application{
-		IUserApplication: &UserApplication{UserRepo: repo.IUserRepo},
+		IUserApplication: &UserApplication{UserRepo: repo.User},
 	}
 }

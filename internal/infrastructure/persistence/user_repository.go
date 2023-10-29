@@ -1,4 +1,4 @@
-package impl
+package persistence
 
 import (
 	"gorm.io/gorm"
@@ -9,6 +9,14 @@ import (
 type UserRepo struct {
 	DB *gorm.DB
 }
+
+func NewUserRepository(db *gorm.DB) *UserRepo {
+	return &UserRepo{
+		DB: db,
+	}
+}
+
+var _ repository.IUserRepo = &UserRepo{}
 
 func (u *UserRepo) Save(user *entity.User) error {
 	if user.ID > 0 {
@@ -22,5 +30,3 @@ func (u *UserRepo) FindByMobile(mobile string) (*entity.User, error) {
 	err := u.DB.Where("mobile = ?", mobile).Find(&user).Error
 	return user, err
 }
-
-var _ repository.IUserRepo = &UserRepo{}
