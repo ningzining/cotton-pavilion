@@ -12,20 +12,18 @@ func GetIdParam(ctx *gin.Context) uint64 {
 }
 
 func GetPageParam(ctx *gin.Context) PageParam {
-	currentPageStr := ctx.Query("current_page")
-	currentPage, _ := strconv.Atoi(currentPageStr)
-	if currentPage <= 0 {
-		currentPage = 1
+	page, _ := strconv.Atoi(ctx.Query("page"))
+	if page <= 0 {
+		page = 1
 	}
 
-	pageSizeStr := ctx.Query("page_size")
-	pageSize, _ := strconv.Atoi(pageSizeStr)
-	if pageSize <= 0 {
-		pageSize = 20
+	size, _ := strconv.Atoi(ctx.Query("size"))
+	if size <= 0 {
+		size = 20
 	}
 
 	return PageParam{
-		CurrentPage: currentPage,
-		PageSize:    pageSize,
+		Page: page,
+		Size: size,
 	}
 }

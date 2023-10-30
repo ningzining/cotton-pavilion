@@ -5,8 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"time"
-	"user-center/internal/application/impl"
-	"user-center/internal/infrastructure/db/mysql"
+	"user-center/internal/application"
 	"user-center/internal/infrastructure/logger"
 	"user-center/internal/infrastructure/persistence"
 	"user-center/internal/interfaces"
@@ -26,7 +25,8 @@ func main() {
 	))
 
 	// 初始化repo层
-	repositories := persistence.NewRepositories(mysql.DB())
+	repositories := persistence.NewRepositories()
+	repositories.AutoMigrate()
 	// 初始化应用层
 	app := application.New(repositories)
 	// 初始化接口层

@@ -1,12 +1,9 @@
 package application
 
-import (
-	"user-center/internal/application"
-	"user-center/internal/infrastructure/persistence"
-)
+import "user-center/internal/infrastructure/persistence"
 
 type Application struct {
-	application.IUserApplication
+	IUserApplication
 }
 
 func New(repo *persistence.Repositories) *Application {
