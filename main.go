@@ -33,9 +33,8 @@ func main() {
 	userHandler := interfaces.NewUser(app)
 
 	// 注册路由
-	v1Group := engine.Group("/v1")
-	v1Group.POST("/user/register", userHandler.Register)
-	v1Group.POST("/user/login", userHandler.Login)
+	engine.POST("/register", userHandler.Register)
+	engine.POST("/login", userHandler.Login)
 
 	// 启动http服务器
 	if err := engine.Run(":8080"); err != nil {

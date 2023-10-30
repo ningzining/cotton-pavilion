@@ -6,6 +6,7 @@ import (
 	"user-center/internal/domain/entity"
 	"user-center/internal/domain/repository"
 	"user-center/internal/utils/crypto"
+	"user-center/internal/utils/jwttoken"
 )
 
 type UserApplication struct {
@@ -21,8 +22,17 @@ func (u *UserApplication) Login(dto LoginDTO) (*LoginRet, error) {
 	if user.Password != password {
 		return nil, errors.New("登录的账号或密码不正确")
 	}
+
+	token, err := jwttoken.Generate(jwttoken.User{
+		Id:       user.ID,
+		Username: user.Username,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return &LoginRet{
-		Token: "testToken",
+		Token: token,
 	}, nil
 }
 

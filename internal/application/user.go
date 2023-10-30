@@ -13,7 +13,7 @@ type LoginDTO struct {
 }
 
 type LoginRet struct {
-	Token string `json:"token"`
+	Token string `json:"jwttoken"`
 }
 
 type IUserApplication interface {
