@@ -8,6 +8,7 @@ import (
 	"user-center/internal/consts"
 	"user-center/internal/domain/entity"
 	"user-center/internal/domain/repository"
+	"user-center/internal/infrastructure/cache"
 	"user-center/internal/utils/crypto"
 	"user-center/internal/utils/jwtutils"
 )
@@ -56,6 +57,14 @@ func (u *UserApplication) Register(dto RegisterDTO) error {
 		Password: password,
 	}
 	return u.UserRepo.Save(user)
+}
+
+func (u *UserApplication) QrCode(dto QrCodeDTO) *QrCodeRet {
+	qrCodeStatus := cache.Get(dto.Ticket)
+	return &QrCodeRet{
+		Ticket: dto.Ticket,
+		Status: qrCodeStatus,
+	}
 }
 
 var _ IUserApplication = &UserApplication{}

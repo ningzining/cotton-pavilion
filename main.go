@@ -35,6 +35,7 @@ func main() {
 	// 注册路由
 	engine.POST("/register", userHandler.Register)
 	engine.POST("/login", userHandler.Login)
+	engine.GET("/qr-code", userHandler.QrCode)
 
 	// 启动http服务器
 	if err := engine.Run(":8080"); err != nil {
