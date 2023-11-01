@@ -1,7 +1,9 @@
 package entity
 
+import "gorm.io/gorm"
+
 type User struct {
-	BaseModel
+	gorm.Model
 	Username string
 	Mobile   string
 	Email    string

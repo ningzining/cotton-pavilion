@@ -3,10 +3,13 @@ package application
 import (
 	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
+	"time"
+	"user-center/internal/consts"
 	"user-center/internal/domain/entity"
 	"user-center/internal/domain/repository"
 	"user-center/internal/utils/crypto"
-	"user-center/internal/utils/jwttoken"
+	"user-center/internal/utils/jwtutils"
 )
 
 type UserApplication struct {
@@ -23,10 +26,18 @@ func (u *UserApplication) Login(dto LoginDTO) (*LoginRet, error) {
 		return nil, errors.New("登录的账号或密码不正确")
 	}
 
-	token, err := jwttoken.Generate(jwttoken.User{
-		Id:       user.ID,
-		Username: user.Username,
-	})
+	claims := jwtutils.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:   consts.SystemName,
+			Subject:  consts.JwtSubject,
+			IssuedAt: jwt.NewNumericDate(time.Now()),
+		},
+		User: jwtutils.User{
+			Id:       user.ID,
+			Username: user.Username,
+		},
+	}
+	token, err := jwtutils.GenerateJwt(claims, consts.JwtSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -44,11 +55,7 @@ func (u *UserApplication) Register(dto RegisterDTO) error {
 		Email:    dto.Email,
 		Password: password,
 	}
-	if err := u.UserRepo.Save(user); err != nil {
-		return err
-	}
-
-	return nil
+	return u.UserRepo.Save(user)
 }
 
 var _ IUserApplication = &UserApplication{}

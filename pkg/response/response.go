@@ -30,3 +30,11 @@ func errorWithMsg(ctx *gin.Context, msg string) {
 		Data: nil,
 	})
 }
+
+func AuthError(ctx *gin.Context, err error) {
+	ctx.JSON(http.StatusUnauthorized, Result{
+		Code: 401,
+		Msg:  err.Error(),
+		Data: nil,
+	})
+}
