@@ -6,7 +6,7 @@ import (
 	"time"
 	"user-center/internal/domain/entity/do"
 	"user-center/internal/enum"
-	"user-center/internal/infrastructure/cache"
+	"user-center/internal/infrastructure/cache/qr_code_cache"
 )
 
 type QrCodeService struct{}
@@ -27,14 +27,14 @@ func (q QrCodeService) GenerateAndSaveQrCode() do.QrCode {
 	value := do.QrCode{
 		Ticket:    ticket,
 		Status:    enum.QrCodeStatusUnauthorized,
-		ExpiredAt: time.Now().Add(time.Minute * 30),
+		ExpiredAt: time.Now().Add(time.Second * 30),
 	}
-	cache.Save(ticket, value)
+	qr_code_cache.Save(ticket, value)
 	return value
 }
 
 func (q QrCodeService) GetQrCode(ticket string) do.QrCode {
-	code, ok := cache.Get(ticket).(do.QrCode)
+	code, ok := qr_code_cache.Get(ticket).(do.QrCode)
 	if !ok {
 		code = q.GenerateAndSaveQrCode()
 	}
@@ -42,9 +42,9 @@ func (q QrCodeService) GetQrCode(ticket string) do.QrCode {
 }
 
 func (q QrCodeService) RefreshQrCode(qrCode do.QrCode) {
-	cache.Save(qrCode.Ticket, qrCode)
+	qr_code_cache.Save(qrCode.Ticket, qrCode)
 }
 
 func (q QrCodeService) RemoveQrCode(ticket string) {
-	cache.Remove(ticket)
+	qr_code_cache.Remove(ticket)
 }

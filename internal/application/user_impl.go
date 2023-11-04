@@ -9,8 +9,8 @@ import (
 	"user-center/internal/domain/entity"
 	"user-center/internal/domain/repository"
 	"user-center/internal/domain/service"
-	"user-center/internal/enum"
-	"user-center/internal/infrastructure/cache"
+	"user-center/internal/infrastructure/cache/qr_code_cache"
+	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
 	"user-center/internal/utils/crypto"
 	"user-center/internal/utils/jwtutils"
 )
@@ -69,26 +69,20 @@ func (u *UserApplication) Register(dto RegisterDTO) error {
 	return u.UserRepo.Save(user)
 }
 
-func (u *UserApplication) QrCode(dto QrCodeDTO) (*QrCodeRet, error) {
-	ticket := cache.GetQrCodeConnTicket(dto.Conn)
+func (u *UserApplication) QrCode(dto QrCodeDTO) *QrCodeRet {
+	ticket := qr_code_conn_cache.Get(dto.Conn)
 	qrCode := u.QrCodeService.GetQrCode(ticket)
 	if qrCode.IsExpired() {
 		u.QrCodeService.RemoveQrCode(qrCode.Ticket)
 		qrCode = u.QrCodeService.GenerateAndSaveQrCode()
 	}
-	cache.SaveQrCodeConnTicket(dto.Conn, qrCode.Ticket)
-	if qrCode.Status == enum.QrCodeStatusAuthorized && qrCode.Token != "" {
-		return &QrCodeRet{
-			Ticket: qrCode.Ticket,
-			Status: qrCode.Status,
-			Token:  qrCode.Token,
-		}, nil
-	}
+	qr_code_conn_cache.Save(dto.Conn, qrCode.Ticket)
 
 	return &QrCodeRet{
 		Ticket: qrCode.Ticket,
 		Status: qrCode.Status,
-	}, nil
+		Token:  qrCode.Token,
+	}
 }
 
 func (u *UserApplication) ScanQrCode(dto ScanQrCodeDTO) (*ScanQrCodeRet, error) {
@@ -130,6 +124,9 @@ func (u *UserApplication) ConfirmLogin(dto ConfirmLoginDTO) error {
 	if err != nil {
 		return err
 	}
+
+	// todo: 按需获取用户信息并放入token当中
+	// 生成web端的token
 	claims := jwtutils.Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    consts.SystemName,
@@ -148,7 +145,7 @@ func (u *UserApplication) ConfirmLogin(dto ConfirmLoginDTO) error {
 	}
 	// 更新二维码状态为已授权
 	qrCode.UpdateAuthorized(token)
-	cache.Save(qrCode.Ticket, qrCode)
+	qr_code_cache.Save(qrCode.Ticket, qrCode)
 	return nil
 }
 

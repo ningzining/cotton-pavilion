@@ -1,4 +1,4 @@
-package cache
+package qr_code_cache
 
 var qrCodeCache = make(map[string]any)
 

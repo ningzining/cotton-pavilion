@@ -2,14 +2,14 @@ package interfaces
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"net/http"
 	"time"
 	"user-center/internal/application"
 	"user-center/internal/consts"
 	"user-center/internal/enum"
-	"user-center/internal/infrastructure/cache"
+	"user-center/internal/infrastructure/cache/qr_code_cache"
+	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
 	"user-center/internal/infrastructure/logger"
+	"user-center/internal/utils/wsutils"
 	"user-center/pkg/response"
 )
 
@@ -71,12 +71,7 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 }
 
 func (u *UserHandler) QrCode(ctx *gin.Context) {
-	upGrader := websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-	conn, err := upGrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	conn, err := wsutils.UpGrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		logger.Error(err.Error())
 		return
@@ -86,15 +81,12 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 	}
 	defer conn.Close()
 	for {
-		codeRet, err := u.UserApp.QrCode(dto)
-		if err != nil {
-			logger.Error(err.Error())
-			return
-		}
+		codeRet := u.UserApp.QrCode(dto)
 		time.Sleep(time.Second)
 		conn.WriteJSON(codeRet)
 		if codeRet.Status == enum.QrCodeStatusAuthorized {
-			cache.Remove(codeRet.Ticket)
+			qr_code_cache.Remove(codeRet.Ticket)
+			qr_code_conn_cache.Remove(conn)
 			return
 		}
 	}
