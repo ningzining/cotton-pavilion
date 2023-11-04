@@ -4,10 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"time"
 	"user-center/internal/application"
-	"user-center/internal/consts"
 	"user-center/internal/domain/entity/enum"
+	"user-center/internal/infrastructure/consts"
 	"user-center/internal/infrastructure/logger"
-	"user-center/internal/utils/wsutils"
+	"user-center/internal/infrastructure/utils/wsutils"
 	"user-center/pkg/response"
 )
 

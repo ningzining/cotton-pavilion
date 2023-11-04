@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
-	"user-center/internal/consts"
 	"user-center/internal/domain/entity"
 	"user-center/internal/domain/repository"
 	"user-center/internal/domain/service"
-	"user-center/internal/utils/crypto"
-	"user-center/internal/utils/jwtutils"
+	"user-center/internal/infrastructure/consts"
+	"user-center/internal/infrastructure/utils/crypto"
+	"user-center/internal/infrastructure/utils/jwtutils"
 )
 
 type UserApplication struct {

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"strings"
-	"user-center/internal/consts"
-	"user-center/internal/utils/jwtutils"
+	"user-center/internal/infrastructure/consts"
+	"user-center/internal/infrastructure/utils/jwtutils"
 	"user-center/pkg/response"
 )
 
