@@ -9,8 +9,6 @@ import (
 	"user-center/internal/domain/entity"
 	"user-center/internal/domain/repository"
 	"user-center/internal/domain/service"
-	"user-center/internal/infrastructure/cache/qr_code_cache"
-	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
 	"user-center/internal/utils/crypto"
 	"user-center/internal/utils/jwtutils"
 )
@@ -70,13 +68,15 @@ func (u *UserApplication) Register(dto RegisterDTO) error {
 }
 
 func (u *UserApplication) QrCode(dto QrCodeDTO) *QrCodeRet {
-	ticket := qr_code_conn_cache.Get(dto.Conn)
+	ticket := u.QrCodeService.GetTicket(dto.Conn)
 	qrCode := u.QrCodeService.GetQrCode(ticket)
-	if qrCode.IsExpired() {
-		u.QrCodeService.RemoveQrCode(qrCode.Ticket)
-		qrCode = u.QrCodeService.GenerateAndSaveQrCode()
+	u.QrCodeService.SaveConn(dto.Conn, qrCode.Ticket)
+
+	// 如果已经授权，则在缓存中移除相关信息
+	if qrCode.IsAuthorized() {
+		u.QrCodeService.RemoveTicket(qrCode.Ticket)
+		u.QrCodeService.RemoveConn(dto.Conn)
 	}
-	qr_code_conn_cache.Save(dto.Conn, qrCode.Ticket)
 
 	return &QrCodeRet{
 		Ticket: qrCode.Ticket,
@@ -104,9 +104,10 @@ func (u *UserApplication) ScanQrCode(dto ScanQrCodeDTO) (*ScanQrCodeRet, error) 
 	if err != nil {
 		return nil, err
 	}
+
 	// 更新二维码为授权中状态
 	qrCode.UpdateAuthorizing(temporaryToken)
-	u.QrCodeService.RefreshQrCode(qrCode)
+	u.QrCodeService.SaveQrCode(qrCode)
 	return &ScanQrCodeRet{
 		TemporaryToken: temporaryToken,
 	}, nil
@@ -143,9 +144,10 @@ func (u *UserApplication) ConfirmLogin(dto ConfirmLoginDTO) error {
 	if err != nil {
 		return err
 	}
+
 	// 更新二维码状态为已授权
 	qrCode.UpdateAuthorized(token)
-	qr_code_cache.Save(qrCode.Ticket, qrCode)
+	u.QrCodeService.SaveQrCode(qrCode)
 	return nil
 }
 

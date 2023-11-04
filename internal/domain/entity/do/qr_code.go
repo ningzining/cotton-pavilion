@@ -26,7 +26,7 @@ func (q *QrCode) IsAuthorizing() bool {
 }
 
 func (q *QrCode) IsAuthorized() bool {
-	return q.Status == enum.QrCodeStatusAuthorized
+	return q.Status == enum.QrCodeStatusAuthorized && q.Token != ""
 }
 
 func (q *QrCode) UpdateAuthorizing(temporaryToken string) {

@@ -6,8 +6,6 @@ import (
 	"user-center/internal/application"
 	"user-center/internal/consts"
 	"user-center/internal/enum"
-	"user-center/internal/infrastructure/cache/qr_code_cache"
-	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
 	"user-center/internal/infrastructure/logger"
 	"user-center/internal/utils/wsutils"
 	"user-center/pkg/response"
@@ -15,7 +13,7 @@ import (
 
 func NewUser(app *application.Application) *UserHandler {
 	return &UserHandler{
-		UserApp: app.IUserApplication,
+		UserApp: app.UserApp,
 	}
 }
 
@@ -84,9 +82,8 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 		codeRet := u.UserApp.QrCode(dto)
 		time.Sleep(time.Second)
 		conn.WriteJSON(codeRet)
+		// 如果已经授权了，那么需要跳出循环，关闭ws连接
 		if codeRet.Status == enum.QrCodeStatusAuthorized {
-			qr_code_cache.Remove(codeRet.Ticket)
-			qr_code_conn_cache.Remove(conn)
 			return
 		}
 	}

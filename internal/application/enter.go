@@ -2,15 +2,18 @@ package application
 
 import (
 	"user-center/internal/domain/service"
+	"user-center/internal/infrastructure/cache"
 	"user-center/internal/infrastructure/persistence"
 )
 
 type Application struct {
-	IUserApplication
+	Cache   cache.ICache
+	UserApp IUserApplication
 }
 
-func New(repo *persistence.Repositories, svc *service.Services) *Application {
+func New(repo *persistence.Repositories, svc *service.Services, cache cache.ICache) *Application {
 	return &Application{
-		IUserApplication: NewUserApplication(repo.User, svc.QrCodeService),
+		Cache:   cache,
+		UserApp: NewUserApplication(repo.User, svc.QrCodeService),
 	}
 }

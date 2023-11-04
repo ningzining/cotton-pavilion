@@ -2,11 +2,13 @@ package service
 
 import (
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"strings"
 	"time"
 	"user-center/internal/domain/entity/do"
 	"user-center/internal/enum"
 	"user-center/internal/infrastructure/cache/qr_code_cache"
+	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
 )
 
 type QrCodeService struct{}
@@ -18,8 +20,12 @@ func NewQrCodeService() IQrCodeService {
 type IQrCodeService interface {
 	GenerateAndSaveQrCode() do.QrCode
 	GetQrCode(ticket string) do.QrCode
-	RefreshQrCode(qrCode do.QrCode)
-	RemoveQrCode(ticket string)
+	SaveQrCode(qrCode do.QrCode)
+	RemoveTicket(ticket string)
+
+	GetTicket(conn *websocket.Conn) string
+	SaveConn(conn *websocket.Conn, ticket string)
+	RemoveConn(conn *websocket.Conn)
 }
 
 func (q QrCodeService) GenerateAndSaveQrCode() do.QrCode {
@@ -34,17 +40,33 @@ func (q QrCodeService) GenerateAndSaveQrCode() do.QrCode {
 }
 
 func (q QrCodeService) GetQrCode(ticket string) do.QrCode {
-	code, ok := qr_code_cache.Get(ticket).(do.QrCode)
+	qrCode, ok := qr_code_cache.Get(ticket).(do.QrCode)
 	if !ok {
-		code = q.GenerateAndSaveQrCode()
+		qrCode = q.GenerateAndSaveQrCode()
 	}
-	return code
+	if qrCode.IsExpired() {
+		q.RemoveTicket(qrCode.Ticket)
+		qrCode = q.GenerateAndSaveQrCode()
+	}
+	return qrCode
 }
 
-func (q QrCodeService) RefreshQrCode(qrCode do.QrCode) {
+func (q QrCodeService) SaveQrCode(qrCode do.QrCode) {
 	qr_code_cache.Save(qrCode.Ticket, qrCode)
 }
 
-func (q QrCodeService) RemoveQrCode(ticket string) {
+func (q QrCodeService) RemoveTicket(ticket string) {
 	qr_code_cache.Remove(ticket)
+}
+
+func (q QrCodeService) GetTicket(conn *websocket.Conn) string {
+	return qr_code_conn_cache.Get(conn)
+}
+
+func (q QrCodeService) SaveConn(conn *websocket.Conn, ticket string) {
+	qr_code_conn_cache.Save(conn, ticket)
+}
+
+func (q QrCodeService) RemoveConn(conn *websocket.Conn) {
+	qr_code_conn_cache.Remove(conn)
 }
