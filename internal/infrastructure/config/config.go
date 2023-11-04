@@ -6,9 +6,6 @@ import (
 	"user-center/internal/infrastructure/logger"
 )
 
-type Config struct {
-}
-
 func Init() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
