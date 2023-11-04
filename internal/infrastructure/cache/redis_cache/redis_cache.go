@@ -23,12 +23,12 @@ func (r RedisCache) Remove(key ...string) error {
 	return r.client.Del(context.Background(), key...).Err()
 }
 
-func NewRedisCache() *RedisCache {
+func NewRedisCache(addr, password string, db int) *RedisCache {
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "771846387", // no password set
-		DB:       0,           // use default DB
-		Protocol: 3,           // specify 2 for RESP 2 or 3 for RESP 3
+		Addr:     addr,
+		Password: password,
+		DB:       db, // use default DB
+		Protocol: 3,  // specify 2 for RESP 2 or 3 for RESP 3
 	})
 
 	return &RedisCache{

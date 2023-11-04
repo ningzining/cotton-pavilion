@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"user-center/internal/application"
 	"user-center/internal/domain/service"
 	"user-center/internal/infrastructure/cache/redis_cache"
@@ -13,9 +14,9 @@ import (
 func Register(engine *gin.Engine) {
 	// todo: 待调整 repo层，注入cache和db
 	// 初始化cache缓存层
-	redisCache := redis_cache.NewRedisCache()
+	redisCache := redis_cache.NewRedisCache(viper.GetString("redis.addr"), viper.GetString("redis.password"), viper.GetInt("redis.db"))
 	// 初始化repo层
-	repositories := persistence.NewRepositories()
+	repositories := persistence.NewRepositories(viper.GetString("mysql.dsn"))
 	repositories.AutoMigrate()
 	// 初始化service层
 	services := service.New()

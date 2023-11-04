@@ -15,8 +15,7 @@ type Repositories struct {
 	User repository.IUserRepository
 }
 
-func NewRepositories() *Repositories {
-	dsn := "root:root@tcp(127.0.0.1:3306)/user-center?charset=utf8mb4&parseTime=True&loc=Local"
+func NewRepositories(dsn string) *Repositories {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		logger.Fatal("mysql start error", zap.String("error", err.Error()))

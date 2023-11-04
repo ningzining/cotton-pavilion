@@ -1,0 +1,7 @@
+Port: ":8080"
+Mysql:
+  Dsn: "root:root@tcp(127.0.0.1:3306)/user-center?charset=utf8mb4&parseTime=True&loc=Local"
+Redis:
+  Addr: "localhost:6379"
+  Password: "771846387"
+  DB: 0
