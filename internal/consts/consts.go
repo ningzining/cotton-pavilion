@@ -6,8 +6,9 @@ const (
 
 // jwt
 const (
-	JwtSecret  = "cotton-user-center"
-	JwtSubject = "auth"
+	JwtSecret           = "cotton-user-center"
+	JwtSubject          = "auth"
+	JwtTemporarySubject = "temporary-auth"
 )
 
 const (

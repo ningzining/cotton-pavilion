@@ -1,6 +1,9 @@
 package application
 
-import "github.com/gorilla/websocket"
+import (
+	"github.com/gorilla/websocket"
+	"user-center/internal/enum"
+)
 
 type RegisterDTO struct {
 	Username string `json:"username" binding:"required"`
@@ -18,32 +21,35 @@ type LoginRet struct {
 	Token string `json:"token"`
 }
 
-type QrCodeStatus = string
-
-const (
-	QrCodeStatusUnauthorized QrCodeStatus = "UNAUTHORIZED" // 未授权
-	QrCodeStatusAuthorized   QrCodeStatus = "AUTHORIZED"   // 已授权
-)
-
 type QrCodeDTO struct {
-	Conn   *websocket.Conn
-	Ticket string
+	Conn *websocket.Conn
 }
 
 type QrCodeRet struct {
-	Ticket string       `json:"ticket"`
-	Status QrCodeStatus `json:"status"`
-	Token  string       `json:"token"`
+	Ticket string            `json:"ticket"`
+	Status enum.QrCodeStatus `json:"status"`
+	Token  string            `json:"token"`
 }
 
 type ConfirmLoginDTO struct {
-	TemporaryToken string `json:"temporary_token"` // todo 待实现二维码已扫描的功能
-	Ticket         string `json:"ticket"`
+	Token          string `form:"token"`                              // 用户token
+	TemporaryToken string `form:"temporary_token" binding:"required"` // 临时token
+	Ticket         string `form:"ticket" binding:"required"`          // 二维码
+}
+
+type ScanQrCodeDTO struct {
+	Ticket string `form:"ticket" binding:"required"` // 二维码
+	Token  string `form:"token"`
+}
+
+type ScanQrCodeRet struct {
+	TemporaryToken string `json:"temporary_token"`
 }
 
 type IUserApplication interface {
 	Register(dto RegisterDTO) error
 	Login(dto LoginDTO) (*LoginRet, error)
 	QrCode(dto QrCodeDTO) (*QrCodeRet, error)
+	ScanQrCode(dto ScanQrCodeDTO) (*ScanQrCodeRet, error)
 	ConfirmLogin(dto ConfirmLoginDTO) error
 }

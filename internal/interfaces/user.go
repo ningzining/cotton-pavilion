@@ -2,12 +2,12 @@ package interfaces
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"strings"
 	"time"
 	"user-center/internal/application"
+	"user-center/internal/consts"
+	"user-center/internal/enum"
 	"user-center/internal/infrastructure/cache"
 	"user-center/internal/infrastructure/logger"
 	"user-center/pkg/response"
@@ -38,6 +38,7 @@ func (u *UserHandler) Register(ctx *gin.Context) {
 		response.Error(ctx, err)
 		return
 	}
+
 	if err := u.UserApp.Register(dto); err != nil {
 		response.Error(ctx, err)
 		return
@@ -60,6 +61,7 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 		response.Error(ctx, err)
 		return
 	}
+
 	data, err := u.UserApp.Login(dto)
 	if err != nil {
 		response.Error(ctx, err)
@@ -80,13 +82,8 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 		return
 	}
 	dto := application.QrCodeDTO{
-		Conn:   conn,
-		Ticket: strings.ReplaceAll(uuid.New().String(), "-", ""),
+		Conn: conn,
 	}
-	value := cache.QrCodeValue{
-		Status: application.QrCodeStatusUnauthorized,
-	}
-	cache.Save(dto.Ticket, value)
 	defer conn.Close()
 	for {
 		codeRet, err := u.UserApp.QrCode(dto)
@@ -96,11 +93,36 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 		}
 		time.Sleep(time.Second)
 		conn.WriteJSON(codeRet)
-		if codeRet.Status == application.QrCodeStatusAuthorized {
-			cache.Remove(dto.Ticket)
+		if codeRet.Status == enum.QrCodeStatusAuthorized {
+			cache.Remove(codeRet.Ticket)
 			return
 		}
 	}
+}
+
+// ScanQrCode
+//
+//	@Summary	扫描二维码
+//	@Tags		login
+//	@Accept		json
+//	@Produce	json
+//	@Param		req	query		application.ScanQrCodeDTO	true	"req"
+//	@Success	200	{object}	response.Result
+//	@Router		/scan-qr-code [get]
+func (u *UserHandler) ScanQrCode(ctx *gin.Context) {
+	var dto application.ScanQrCodeDTO
+	if err := ctx.ShouldBind(&dto); err != nil {
+		response.Error(ctx, err)
+		return
+	}
+	dto.Token = ctx.GetString(consts.ContextKeyToken)
+
+	data, err := u.UserApp.ScanQrCode(dto)
+	if err != nil {
+		response.Error(ctx, err)
+		return
+	}
+	response.Success(ctx, data)
 }
 
 // ConfirmLogin
@@ -109,15 +131,17 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 //	@Tags		login
 //	@Accept		json
 //	@Produce	json
-//	@Param		req	body		application.ConfirmLoginDTO	true	"req"
+//	@Param		req	query		application.ConfirmLoginDTO	true	"req"
 //	@Success	200	{object}	response.Result
-//	@Router		/confirm-login [post]
+//	@Router		/confirm-login [get]
 func (u *UserHandler) ConfirmLogin(ctx *gin.Context) {
 	var dto application.ConfirmLoginDTO
-	if err := ctx.ShouldBindJSON(&dto); err != nil {
+	if err := ctx.ShouldBind(&dto); err != nil {
 		response.Error(ctx, err)
 		return
 	}
+	dto.Token = ctx.GetString(consts.ContextKeyToken)
+
 	if err := u.UserApp.ConfirmLogin(dto); err != nil {
 		response.Error(ctx, err)
 		return

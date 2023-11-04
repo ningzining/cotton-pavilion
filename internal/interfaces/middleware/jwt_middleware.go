@@ -26,7 +26,7 @@ func JwtMiddleware() gin.HandlerFunc {
 			return
 		}
 		ctx.Set(consts.ContextKeyUser, claims.User)
-		ctx.Set(consts.ContextKeyToken, authorization)
+		ctx.Set(consts.ContextKeyToken, tokenStr)
 		ctx.Next()
 	}
 }
