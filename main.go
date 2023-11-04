@@ -5,10 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"time"
-	"user-center/internal/application"
 	"user-center/internal/infrastructure/logger"
-	"user-center/internal/infrastructure/persistence"
-	"user-center/internal/interfaces"
+	"user-center/internal/interfaces/router"
 )
 
 func main() {
@@ -24,18 +22,8 @@ func main() {
 		},
 	))
 
-	// 初始化repo层
-	repositories := persistence.NewRepositories()
-	repositories.AutoMigrate()
-	// 初始化应用层
-	app := application.New(repositories)
-	// 初始化接口层
-	userHandler := interfaces.NewUser(app)
-
 	// 注册路由
-	engine.POST("/register", userHandler.Register)
-	engine.POST("/login", userHandler.Login)
-	engine.GET("/qr-code", userHandler.QrCode)
+	router.Register(engine)
 
 	// 启动http服务器
 	if err := engine.Run(":8080"); err != nil {

@@ -21,8 +21,8 @@ type LoginRet struct {
 type QrCodeStatus = string
 
 const (
-	QrCodeStatusUnauthorized QrCodeStatus = "Unauthorized" // 未授权
-	QrCodeStatusAuthorized   QrCodeStatus = "Authorized"   // 已授权
+	QrCodeStatusUnauthorized QrCodeStatus = "UNAUTHORIZED" // 未授权
+	QrCodeStatusAuthorized   QrCodeStatus = "AUTHORIZED"   // 已授权
 )
 
 type QrCodeDTO struct {
@@ -33,10 +33,17 @@ type QrCodeDTO struct {
 type QrCodeRet struct {
 	Ticket string       `json:"ticket"`
 	Status QrCodeStatus `json:"status"`
+	Token  string       `json:"token"`
+}
+
+type ConfirmLoginDTO struct {
+	TemporaryToken string `json:"temporary_token"` // todo 待实现二维码已扫描的功能
+	Ticket         string `json:"ticket"`
 }
 
 type IUserApplication interface {
 	Register(dto RegisterDTO) error
 	Login(dto LoginDTO) (*LoginRet, error)
-	QrCode(dto QrCodeDTO) *QrCodeRet
+	QrCode(dto QrCodeDTO) (*QrCodeRet, error)
+	ConfirmLogin(dto ConfirmLoginDTO) error
 }

@@ -59,12 +59,49 @@ func (u *UserApplication) Register(dto RegisterDTO) error {
 	return u.UserRepo.Save(user)
 }
 
-func (u *UserApplication) QrCode(dto QrCodeDTO) *QrCodeRet {
-	qrCodeStatus := cache.Get(dto.Ticket)
+func (u *UserApplication) QrCode(dto QrCodeDTO) (*QrCodeRet, error) {
+	qrCodeValue := cache.Get(dto.Ticket).(cache.QrCodeValue)
+	if qrCodeValue.Status == QrCodeStatusAuthorized && qrCodeValue.Token == "" {
+		parseJwt, err := jwtutils.ParseJwt(qrCodeValue.TemporaryToken, consts.JwtSecret)
+		if err != nil {
+			return nil, err
+		}
+		claims := jwtutils.Claims{
+			RegisteredClaims: jwt.RegisteredClaims{
+				Issuer:    consts.SystemName,
+				Subject:   consts.JwtSubject,
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 12)),
+			},
+			User: jwtutils.User{
+				Id:       parseJwt.User.Id,
+				Username: parseJwt.User.Username,
+			},
+		}
+		token, err := jwtutils.GenerateJwt(claims, consts.JwtSecret)
+		if err != nil {
+			return nil, err
+		}
+		qrCodeValue.Token = token
+		qrCodeValue.TemporaryToken = ""
+		cache.Save(dto.Ticket, qrCodeValue)
+	}
 	return &QrCodeRet{
 		Ticket: dto.Ticket,
-		Status: qrCodeStatus,
+		Status: qrCodeValue.Status,
+		Token:  qrCodeValue.Token,
+	}, nil
+}
+
+func (u *UserApplication) ConfirmLogin(dto ConfirmLoginDTO) error {
+	qrCodeValue := cache.Get(dto.Ticket).(cache.QrCodeValue)
+	if qrCodeValue.Status != QrCodeStatusUnauthorized {
+		return errors.New("二维码已被扫描")
 	}
+	qrCodeValue.Status = QrCodeStatusAuthorized
+	qrCodeValue.TemporaryToken = dto.TemporaryToken
+	cache.Save(dto.Ticket, qrCodeValue)
+	return nil
 }
 
 var _ IUserApplication = &UserApplication{}
