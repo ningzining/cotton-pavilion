@@ -2,7 +2,7 @@ package application
 
 import (
 	"github.com/gorilla/websocket"
-	"user-center/internal/enum"
+	"user-center/internal/domain/entity/enum"
 )
 
 type RegisterDTO struct {

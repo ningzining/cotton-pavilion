@@ -5,7 +5,7 @@ import (
 	"time"
 	"user-center/internal/application"
 	"user-center/internal/consts"
-	"user-center/internal/enum"
+	"user-center/internal/domain/entity/enum"
 	"user-center/internal/infrastructure/logger"
 	"user-center/internal/utils/wsutils"
 	"user-center/pkg/response"

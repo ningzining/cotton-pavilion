@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 	"user-center/internal/domain/entity/do"
-	"user-center/internal/enum"
+	"user-center/internal/domain/entity/enum"
 	"user-center/internal/infrastructure/cache/qr_code_cache"
 	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
 )

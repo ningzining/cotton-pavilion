@@ -2,7 +2,7 @@ package do
 
 import (
 	"time"
-	"user-center/internal/enum"
+	"user-center/internal/domain/entity/enum"
 )
 
 type QrCode struct {
