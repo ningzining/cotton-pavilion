@@ -10,6 +10,12 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{
+		DB: db,
+	}
+}
+
 func (u UserRepository) Save(user *entity.User) error {
 	if user.ID > 0 {
 		return u.DB.Updates(user).Error
@@ -33,12 +39,6 @@ func (u UserRepository) FindById(userId uint64) (*entity.User, error) {
 		return nil, err
 	}
 	return user, nil
-}
-
-func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{
-		DB: db,
-	}
 }
 
 var _ repository.IUserRepository = &UserRepository{}

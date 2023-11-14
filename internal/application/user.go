@@ -45,11 +45,3 @@ type ScanQrCodeDTO struct {
 type ScanQrCodeRet struct {
 	TemporaryToken string `json:"temporary_token"`
 }
-
-type IUserApplication interface {
-	Register(dto RegisterDTO) error
-	Login(dto LoginDTO) (*LoginRet, error)
-	QrCode(dto QrCodeDTO) *QrCodeRet
-	ScanQrCode(dto ScanQrCodeDTO) (*ScanQrCodeRet, error)
-	ConfirmLogin(dto ConfirmLoginDTO) error
-}

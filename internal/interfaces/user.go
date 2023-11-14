@@ -11,14 +11,14 @@ import (
 	"user-center/pkg/response"
 )
 
-func NewUser(app *application.Application) *UserHandler {
-	return &UserHandler{
-		UserApp: app.UserApp,
-	}
+type UserHandler struct {
+	UserApp *application.UserApplication
 }
 
-type UserHandler struct {
-	UserApp application.IUserApplication
+func NewUserHandler(app *application.UserApplication) *UserHandler {
+	return &UserHandler{
+		UserApp: app,
+	}
 }
 
 // Register

@@ -20,6 +20,6 @@ tools.verify.%:
 tools.install.L-ctl:
 	@go install github.com/ningzining/L-ctl@latest
 
-#help:
-#	@echo "Usage:"
-#	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
+help:
+	@echo "Usage:"
+	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'

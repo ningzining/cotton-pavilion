@@ -11,8 +11,8 @@ import (
 )
 
 type Repositories struct {
-	db   *gorm.DB
-	User repository.IUserRepository
+	db             *gorm.DB
+	UserRepository repository.IUserRepository
 }
 
 func NewRepositories(dsn string) *Repositories {
@@ -28,8 +28,8 @@ func NewRepositories(dsn string) *Repositories {
 	logger.Info("mysql start success")
 
 	return &Repositories{
-		db:   db,
-		User: NewUserRepository(db),
+		db:             db,
+		UserRepository: NewUserRepository(db),
 	}
 }
 

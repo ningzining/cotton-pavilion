@@ -4,32 +4,32 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"user-center/internal/application"
-	"user-center/internal/domain/service"
 	"user-center/internal/infrastructure/cache/redis_cache"
 	"user-center/internal/infrastructure/persistence"
+	"user-center/internal/infrastructure/service"
 	"user-center/internal/interfaces"
 	"user-center/internal/interfaces/middleware"
 )
 
 func Register(engine *gin.Engine) {
-	// todo: 待调整 repo层，注入cache和db
-	// 初始化cache缓存层
-	redisCache := redis_cache.NewRedisCache(viper.GetString("redis.addr"), viper.GetString("redis.password"), viper.GetInt("redis.db"))
+	// 初始化redis
+	// todo: 待使用
+	redis_cache.NewRedisCache(viper.GetString("redis.addr"), viper.GetString("redis.password"), viper.GetInt("redis.db"))
 	// 初始化repo层
 	repositories := persistence.NewRepositories(viper.GetString("mysql.dsn"))
 	repositories.AutoMigrate()
 	// 初始化service层
-	services := service.New()
+	services := service.New(repositories)
 	// 初始化应用层
-	app := application.New(repositories, services, redisCache)
+	userApplication := application.NewUserApplication(repositories.UserRepository, services.QrCodeService)
 
 	v1Group := engine.Group("/v1")
-	registerLoginRouter(v1Group, app)
+	registerLoginRouter(v1Group, userApplication)
 }
 
-func registerLoginRouter(group *gin.RouterGroup, app *application.Application) {
+func registerLoginRouter(group *gin.RouterGroup, app *application.UserApplication) {
 	// 初始化接口层
-	userHandler := interfaces.NewUser(app)
+	userHandler := interfaces.NewUserHandler(app)
 	group.POST("/register", userHandler.Register)
 	group.POST("/login", userHandler.Login)
 

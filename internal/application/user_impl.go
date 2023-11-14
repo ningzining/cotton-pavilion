@@ -150,5 +150,3 @@ func (u *UserApplication) ConfirmLogin(dto ConfirmLoginDTO) error {
 	u.QrCodeService.SaveQrCode(qrCode)
 	return nil
 }
-
-var _ IUserApplication = &UserApplication{}
