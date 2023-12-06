@@ -34,5 +34,5 @@ func NewRepositories(dsn string) *Repositories {
 }
 
 func (r Repositories) AutoMigrate() {
-	r.db.AutoMigrate(entity.User{})
+	_ = r.db.AutoMigrate(entity.User{})
 }

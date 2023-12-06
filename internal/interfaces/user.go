@@ -81,7 +81,7 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 	for {
 		codeRet := u.UserApp.QrCode(dto)
 		time.Sleep(time.Second)
-		conn.WriteJSON(codeRet)
+		_ = conn.WriteJSON(codeRet)
 		// 如果已经授权了，那么需要跳出循环，关闭ws连接
 		if codeRet.Status == enum.QrCodeStatusAuthorized {
 			return
