@@ -1,7 +1,6 @@
 package application
 
 import (
-	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
@@ -11,6 +10,8 @@ import (
 	"user-center/internal/infrastructure/consts"
 	"user-center/internal/infrastructure/utils/crypto"
 	"user-center/internal/infrastructure/utils/jwtutils"
+	"user-center/pkg/code"
+	"user-center/pkg/errors"
 )
 
 type UserApplication struct {
@@ -32,7 +33,7 @@ func (u *UserApplication) Login(dto LoginDTO) (*LoginRet, error) {
 		return nil, err
 	}
 	if user.Password != password {
-		return nil, errors.New("登录的账号或密码不正确")
+		return nil, errors.WithCode(code.ErrPasswordIncorrect, "密码不正确")
 	}
 
 	claims := jwtutils.Claims{
@@ -48,7 +49,7 @@ func (u *UserApplication) Login(dto LoginDTO) (*LoginRet, error) {
 	}
 	token, err := jwtutils.GenerateJwt(claims, consts.JwtSecret)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithCode(code.ErrTokenGenerate, err.Error())
 	}
 
 	return &LoginRet{
@@ -64,7 +65,10 @@ func (u *UserApplication) Register(dto RegisterDTO) error {
 		Email:    dto.Email,
 		Password: password,
 	}
-	return u.UserRepo.Save(user)
+	if err := u.UserRepo.Save(user); err != nil {
+		return errors.WithCode(code.ErrDatabase, err.Error())
+	}
+	return nil
 }
 
 func (u *UserApplication) QrCode(dto QrCodeDTO) *QrCodeRet {
@@ -88,7 +92,7 @@ func (u *UserApplication) QrCode(dto QrCodeDTO) *QrCodeRet {
 func (u *UserApplication) ScanQrCode(dto ScanQrCodeDTO) (*ScanQrCodeRet, error) {
 	qrCode := u.QrCodeService.GetQrCode(dto.Ticket)
 	if !qrCode.IsUnauthorized() {
-		return nil, errors.New("二维码已扫描")
+		return nil, errors.WithCode(code.ErrQrCodeExpired, "二维码已被扫描")
 	}
 
 	// 生成临时token
@@ -116,10 +120,10 @@ func (u *UserApplication) ScanQrCode(dto ScanQrCodeDTO) (*ScanQrCodeRet, error) 
 func (u *UserApplication) ConfirmLogin(dto ConfirmLoginDTO) error {
 	qrCode := u.QrCodeService.GetQrCode(dto.Ticket)
 	if !qrCode.IsAuthorizing() {
-		return errors.New("二维码已授权,请刷新")
+		return errors.WithCode(code.ErrQrCodeExpired, "二维码已授权")
 	}
 	if dto.TemporaryToken != qrCode.TemporaryToken {
-		return errors.New("二维码已过期,请刷新")
+		return errors.WithCode(code.ErrQrCodeExpired, "二维码信息不一致")
 	}
 	parseJwt, err := jwtutils.ParseJwt(dto.Token, consts.JwtSecret)
 	if err != nil {

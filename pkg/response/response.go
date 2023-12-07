@@ -2,7 +2,10 @@ package response
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"user-center/pkg/code"
+	"user-center/pkg/errors"
 )
 
 type Result struct {
@@ -13,22 +16,23 @@ type Result struct {
 
 func Success(ctx *gin.Context, data any) {
 	ctx.JSON(http.StatusOK, Result{
-		Code: 0,
+		Code: code.ErrSuccess,
 		Msg:  "",
 		Data: data,
 	})
 }
 
 func Error(ctx *gin.Context, err error) {
-	errorWithMsg(ctx, err.Error())
-}
-
-func errorWithMsg(ctx *gin.Context, msg string) {
-	ctx.JSON(http.StatusOK, Result{
-		Code: 500,
-		Msg:  msg,
-		Data: nil,
-	})
+	coder := errors.ParseCoder(err)
+	if coder != nil {
+		log.Println(err)
+		ctx.JSON(coder.HTTPStatus(), Result{
+			Code: coder.Code(),
+			Msg:  coder.String(),
+			Data: nil,
+		})
+		return
+	}
 }
 
 func AuthError(ctx *gin.Context, err error) {
