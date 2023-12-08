@@ -1,11 +1,12 @@
 package middleware
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"strings"
 	"user-center/internal/infrastructure/consts"
 	"user-center/internal/infrastructure/utils/jwtutils"
+	"user-center/pkg/code"
+	"user-center/pkg/errors"
 	"user-center/pkg/response"
 )
 
@@ -13,7 +14,7 @@ func JwtMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorization := ctx.GetHeader("Authorization")
 		if len(authorization) == 0 {
-			response.AuthError(ctx, errors.New("登录已过期，请重新登录"))
+			response.Error(ctx, errors.WithCode(code.ErrMissingHeader, "authorization为空"))
 			ctx.Abort()
 			return
 		}
@@ -21,7 +22,7 @@ func JwtMiddleware() gin.HandlerFunc {
 		tokenStr := strings.Replace(authorization, "Bearer ", "", 1)
 		claims, err := jwtutils.ParseJwt(tokenStr, consts.JwtSecret)
 		if err != nil {
-			response.AuthError(ctx, errors.New("token异常，请重新登录"))
+			response.Error(ctx, errors.WithCode(code.ErrTokenInvalid, "token解析异常，请重新登录"))
 			ctx.Abort()
 			return
 		}

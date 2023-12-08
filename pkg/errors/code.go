@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	unknownCoder defaultCoder = defaultCoder{1, http.StatusInternalServerError, "服务未知异常"}
+	unknownCoder = defaultCoder{1, http.StatusInternalServerError, "服务未知异常"}
 )
 
 type defaultCoder struct {

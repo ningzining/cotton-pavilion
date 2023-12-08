@@ -25,7 +25,6 @@ const (
 	ErrQrCodeExpired
 	ErrTokenGenerate
 	ErrTokenExpired
-	ErrInvalidAuthHeader
 	ErrMissingHeader
 	ErrPermissionDenied
 )
