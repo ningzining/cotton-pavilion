@@ -6,6 +6,7 @@ import (
 	"user-center/internal/application/types"
 	"user-center/internal/domain/entity/enum"
 	"user-center/internal/infrastructure/application"
+	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
 	"user-center/internal/infrastructure/logger"
 	"user-center/internal/infrastructure/utils/wsutils"
 	"user-center/pkg/code"
@@ -89,6 +90,7 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 			return
 		}
 	}
+	qr_code_conn_cache.Remove(conn)
 }
 
 // ScanQrCode
