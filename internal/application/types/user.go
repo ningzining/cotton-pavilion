@@ -32,9 +32,9 @@ type QrCodeRet struct {
 }
 
 type ConfirmLoginDTO struct {
-	Token          string `form:"token"`                              // 用户token
 	TemporaryToken string `form:"temporary_token" binding:"required"` // 临时token
 	Ticket         string `form:"ticket" binding:"required"`          // 二维码
+	Token          string `header:"Authorization"`                    // 用户token
 }
 
 type ScanQrCodeDTO struct {

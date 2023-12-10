@@ -63,18 +63,25 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	response.Success(ctx, data)
 }
 
+// QrCode ws pc获取二维码
 func (u *UserHandler) QrCode(ctx *gin.Context) {
 	conn, err := wsutils.UpGrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		logger.Error(err.Error())
 		return
 	}
+	defer func() {
+		_ = conn.Close()
+	}()
+
 	dto := types.QrCodeDTO{
 		Conn: conn,
 	}
-	defer conn.Close()
 	for {
-		codeRet := application.UserApplication().QrCode(dto)
+		codeRet, err := application.UserApplication().QrCode(dto)
+		if err != nil {
+			return
+		}
 		time.Sleep(time.Second)
 		_ = conn.WriteJSON(codeRet)
 		// 如果已经授权了，那么需要跳出循环，关闭ws连接

@@ -1,14 +1,15 @@
 package service
 
 import (
+	"errors"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"strings"
 	"time"
 	"user-center/internal/domain/entity/do"
 	"user-center/internal/domain/entity/enum"
-	"user-center/internal/infrastructure/cache/qr_code_cache"
 	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
+	"user-center/internal/infrastructure/cache/qr_code_info_cache"
 )
 
 type QrCodeService struct{}
@@ -18,55 +19,55 @@ func NewQrCodeService() IQrCodeService {
 }
 
 type IQrCodeService interface {
-	GenerateAndSaveQrCode() do.QrCode
-	GetQrCode(ticket string) do.QrCode
-	SaveQrCode(qrCode do.QrCode)
-	RemoveTicket(ticket string)
-
+	GenerateNew() *do.QrCode
 	GetTicket(conn *websocket.Conn) string
-	SaveConn(conn *websocket.Conn, ticket string)
-	RemoveConn(conn *websocket.Conn)
+	GetQrCode(ticket string) (*do.QrCode, error)
+	Remove(conn *websocket.Conn, ticket string)
+	SaveQrCode(qrCode *do.QrCode)
 }
 
-func (q QrCodeService) GenerateAndSaveQrCode() do.QrCode {
+func (q QrCodeService) GetTicket(conn *websocket.Conn) string {
+	var resTicket string
+	ticket, b := qr_code_conn_cache.Get(conn)
+	if !b {
+		newQrCode := q.GenerateNew()
+		// 先保存连接和ticket的关系，再保存ticket和具体的二维码信息
+		qr_code_conn_cache.Save(conn, newQrCode.Ticket)
+		qr_code_info_cache.Save(newQrCode.Ticket, newQrCode)
+		resTicket = newQrCode.Ticket
+	} else {
+		resTicket = ticket.(string)
+	}
+	return resTicket
+}
+
+func (q QrCodeService) GenerateNew() *do.QrCode {
 	ticket := strings.ReplaceAll(uuid.New().String(), "-", "")
-	value := do.QrCode{
+	return &do.QrCode{
 		Ticket:    ticket,
 		Status:    enum.QrCodeStatusUnauthorized,
 		ExpiredAt: time.Now().Add(time.Second * 30),
 	}
-	qr_code_cache.Save(ticket, value)
-	return value
 }
 
-func (q QrCodeService) GetQrCode(ticket string) do.QrCode {
-	qrCode, ok := qr_code_cache.Get(ticket).(do.QrCode)
+func (q QrCodeService) GetQrCode(ticket string) (*do.QrCode, error) {
+	qrCode, ok := qr_code_info_cache.Get(ticket)
 	if !ok {
-		qrCode = q.GenerateAndSaveQrCode()
+		return nil, errors.New("二维码不存在")
 	}
-	if qrCode.IsExpired() {
-		q.RemoveTicket(qrCode.Ticket)
-		qrCode = q.GenerateAndSaveQrCode()
+	code, ok := qrCode.(*do.QrCode)
+	if !ok {
+		return nil, errors.New("二维码异常")
 	}
-	return qrCode
+	return code, nil
 }
 
-func (q QrCodeService) SaveQrCode(qrCode do.QrCode) {
-	qr_code_cache.Save(qrCode.Ticket, qrCode)
-}
-
-func (q QrCodeService) RemoveTicket(ticket string) {
-	qr_code_cache.Remove(ticket)
-}
-
-func (q QrCodeService) GetTicket(conn *websocket.Conn) string {
-	return qr_code_conn_cache.Get(conn)
-}
-
-func (q QrCodeService) SaveConn(conn *websocket.Conn, ticket string) {
-	qr_code_conn_cache.Save(conn, ticket)
-}
-
-func (q QrCodeService) RemoveConn(conn *websocket.Conn) {
+// Remove 删除二维码信息和连接的信息
+func (q QrCodeService) Remove(conn *websocket.Conn, ticket string) {
 	qr_code_conn_cache.Remove(conn)
+	qr_code_info_cache.Remove(ticket)
+}
+
+func (q QrCodeService) SaveQrCode(qrCode *do.QrCode) {
+	qr_code_info_cache.Save(qrCode.Ticket, qrCode)
 }

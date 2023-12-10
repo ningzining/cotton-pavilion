@@ -25,6 +25,7 @@ const (
 const (
 	ErrPasswordIncorrect int = iota + 100201
 	ErrQrCodeExpired
+	ErrQrCodeInvalid
 	ErrTokenGenerate
 	ErrTokenExpired
 	ErrMissingHeader
@@ -47,9 +48,10 @@ func init() {
 	// 通用模块错误信息
 	register(ErrPasswordIncorrect, http.StatusOK, "密码不正确,请重新输入")
 	register(ErrQrCodeExpired, http.StatusUnauthorized, "二维码已过期,请刷新")
-	register(ErrTokenGenerate, http.StatusOK, "token生成失败")
-	register(ErrMissingHeader, http.StatusUnauthorized, "缺少header信息，请重新登录")
-	register(ErrMissingToken, http.StatusUnauthorized, "header中缺少token信息，请重新登录")
-	register(ErrTokenExpired, http.StatusUnauthorized, "token信息已过期，请重新登录")
-	register(ErrPermissionDenied, http.StatusForbidden, "权限不存在，请联系管理员")
+	register(ErrQrCodeInvalid, http.StatusUnauthorized, "无效二维码,请刷新")
+	register(ErrTokenGenerate, http.StatusOK, "token生成失败,请联系管理员")
+	register(ErrMissingHeader, http.StatusUnauthorized, "缺少header信息,请重新登录")
+	register(ErrMissingToken, http.StatusUnauthorized, "header中缺少token信息,请重新登录")
+	register(ErrTokenExpired, http.StatusUnauthorized, "token信息已过期,请重新登录")
+	register(ErrPermissionDenied, http.StatusForbidden, "权限不存在,请联系管理员")
 }

@@ -1,7 +1,6 @@
 package application
 
 import (
-	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 	"user-center/internal/application/types"
@@ -28,12 +27,11 @@ func NewUserApplication(userRepository repository.IUserRepository, codeService s
 }
 
 func (u *UserApplication) Login(dto types.LoginDTO) (*types.LoginRet, error) {
-	password := crypto.Md5(fmt.Sprintf("%s%s", dto.Mobile, dto.Password))
 	user, err := u.UserRepo.FindByMobile(dto.Mobile)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithCode(code.ErrDatabase, err.Error())
 	}
-	if user.Password != password {
+	if user.Password != crypto.Md5Password(dto.Mobile, dto.Password) {
 		return nil, errors.WithCode(code.ErrPasswordIncorrect, "密码不正确")
 	}
 
@@ -59,12 +57,11 @@ func (u *UserApplication) Login(dto types.LoginDTO) (*types.LoginRet, error) {
 }
 
 func (u *UserApplication) Register(dto types.RegisterDTO) error {
-	password := crypto.Md5(fmt.Sprintf("%s%s", dto.Mobile, dto.Password))
 	user := &entity.User{
 		Username: dto.Username,
 		Mobile:   dto.Mobile,
 		Email:    dto.Email,
-		Password: password,
+		Password: crypto.Md5Password(dto.Mobile, dto.Password),
 	}
 	if err := u.UserRepo.Save(user); err != nil {
 		return errors.WithCode(code.ErrDatabase, err.Error())
@@ -72,26 +69,33 @@ func (u *UserApplication) Register(dto types.RegisterDTO) error {
 	return nil
 }
 
-func (u *UserApplication) QrCode(dto types.QrCodeDTO) *types.QrCodeRet {
+func (u *UserApplication) QrCode(dto types.QrCodeDTO) (*types.QrCodeRet, error) {
 	ticket := u.QrCodeService.GetTicket(dto.Conn)
-	qrCode := u.QrCodeService.GetQrCode(ticket)
-	u.QrCodeService.SaveConn(dto.Conn, qrCode.Ticket)
+	qrCode, err := u.QrCodeService.GetQrCode(ticket)
+	if err != nil {
+		return nil, errors.WithCode(code.ErrQrCodeInvalid, err.Error())
+	}
 
 	// 如果已经授权，则在缓存中移除相关信息
 	if qrCode.IsAuthorized() {
-		u.QrCodeService.RemoveTicket(qrCode.Ticket)
-		u.QrCodeService.RemoveConn(dto.Conn)
+		u.QrCodeService.Remove(dto.Conn, qrCode.Ticket)
 	}
 
 	return &types.QrCodeRet{
 		Ticket: qrCode.Ticket,
 		Status: qrCode.Status,
 		Token:  qrCode.Token,
-	}
+	}, nil
 }
 
 func (u *UserApplication) ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCodeRet, error) {
-	qrCode := u.QrCodeService.GetQrCode(dto.Ticket)
+	qrCode, err := u.QrCodeService.GetQrCode(dto.Ticket)
+	if err != nil {
+		return nil, errors.WithCode(code.ErrQrCodeInvalid, err.Error())
+	}
+	if qrCode.IsExpired() {
+		return nil, errors.WithCode(code.ErrQrCodeExpired, "二维码已过期")
+	}
 	if !qrCode.IsUnauthorized() {
 		return nil, errors.WithCode(code.ErrQrCodeExpired, "二维码已被扫描")
 	}
@@ -119,16 +123,19 @@ func (u *UserApplication) ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCode
 }
 
 func (u *UserApplication) ConfirmLogin(dto types.ConfirmLoginDTO) error {
-	qrCode := u.QrCodeService.GetQrCode(dto.Ticket)
+	qrCode, err := u.QrCodeService.GetQrCode(dto.Ticket)
+	if err != nil {
+		return errors.WithCode(code.ErrQrCodeInvalid, err.Error())
+	}
 	if !qrCode.IsAuthorizing() {
-		return errors.WithCode(code.ErrQrCodeExpired, "二维码已授权")
+		return errors.WithCode(code.ErrQrCodeInvalid, "二维码未扫描")
 	}
 	if dto.TemporaryToken != qrCode.TemporaryToken {
-		return errors.WithCode(code.ErrQrCodeExpired, "二维码信息不一致")
+		return errors.WithCode(code.ErrQrCodeInvalid, "扫描二维码和确认的手机不一致")
 	}
 	parseJwt, err := jwtutils.ParseJwt(dto.Token, consts.JwtSecret)
 	if err != nil {
-		return err
+		return errors.WithCode(code.ErrTokenInvalid, err.Error())
 	}
 
 	// todo: 按需获取用户信息并放入token当中
@@ -147,7 +154,7 @@ func (u *UserApplication) ConfirmLogin(dto types.ConfirmLoginDTO) error {
 	}
 	token, err := jwtutils.GenerateJwt(claims, consts.JwtSecret)
 	if err != nil {
-		return err
+		return errors.WithCode(code.ErrTokenGenerate, err.Error())
 	}
 
 	// 更新二维码状态为已授权

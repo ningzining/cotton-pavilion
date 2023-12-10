@@ -2,18 +2,20 @@ package qr_code_conn_cache
 
 import (
 	"github.com/gorilla/websocket"
+	"sync"
 )
 
-var qrCodeConnMap = make(map[*websocket.Conn]string)
+// 保存每个ws连接对应的二维码
+var qrCodeConnMap sync.Map
 
-func Get(conn *websocket.Conn) string {
-	return qrCodeConnMap[conn]
+func Get(conn *websocket.Conn) (any, bool) {
+	return qrCodeConnMap.Load(conn)
 }
 
-func Save(conn *websocket.Conn, ticket string) {
-	qrCodeConnMap[conn] = ticket
+func Save(conn *websocket.Conn, value string) {
+	qrCodeConnMap.Store(conn, value)
 }
 
 func Remove(conn *websocket.Conn) {
-	delete(qrCodeConnMap, conn)
+	qrCodeConnMap.Delete(conn)
 }
