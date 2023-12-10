@@ -14,7 +14,7 @@ func JwtMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorization := ctx.GetHeader("Authorization")
 		if len(authorization) == 0 {
-			response.Error(ctx, errors.WithCode(code.ErrMissingHeader, "authorization为空"))
+			response.Error(ctx, errors.WithCode(code.ErrMissingToken, "authorization为空"))
 			ctx.Abort()
 			return
 		}

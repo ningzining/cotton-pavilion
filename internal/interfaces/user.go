@@ -3,41 +3,38 @@ package interfaces
 import (
 	"github.com/gin-gonic/gin"
 	"time"
-	"user-center/internal/application"
+	"user-center/internal/application/types"
 	"user-center/internal/domain/entity/enum"
-	"user-center/internal/infrastructure/consts"
+	"user-center/internal/infrastructure/application"
 	"user-center/internal/infrastructure/logger"
 	"user-center/internal/infrastructure/utils/wsutils"
+	"user-center/pkg/code"
+	"user-center/pkg/errors"
 	"user-center/pkg/response"
 )
 
 type UserHandler struct {
-	UserApp *application.UserApplication
 }
 
-func NewUserHandler(app *application.UserApplication) *UserHandler {
-	return &UserHandler{
-		UserApp: app,
-	}
+func NewUserHandler() *UserHandler {
+	return &UserHandler{}
 }
 
 // Register
 //
 //	@Summary	注册
 //	@Tags		login
-//	@Accept		json
-//	@Produce	json
 //	@Param		req	body		application.RegisterDTO	true	"req"
 //	@Success	200	{object}	response.Result
 //	@Router		/register [post]
 func (u *UserHandler) Register(ctx *gin.Context) {
-	var dto application.RegisterDTO
+	var dto types.RegisterDTO
 	if err := ctx.ShouldBind(&dto); err != nil {
-		response.Error(ctx, err)
+		response.Error(ctx, errors.WithCode(code.ErrBind, err.Error()))
 		return
 	}
 
-	if err := u.UserApp.Register(dto); err != nil {
+	if err := application.UserApplication().Register(dto); err != nil {
 		response.Error(ctx, err)
 		return
 	}
@@ -48,19 +45,17 @@ func (u *UserHandler) Register(ctx *gin.Context) {
 //
 //	@Summary	登录
 //	@Tags		login
-//	@Accept		json
-//	@Produce	json
 //	@Param		req	body		application.LoginDTO	true	"req"
 //	@Success	200	{object}	response.Result{data=application.LoginRet}
 //	@Router		/login [post]
 func (u *UserHandler) Login(ctx *gin.Context) {
-	var dto application.LoginDTO
+	var dto types.LoginDTO
 	if err := ctx.ShouldBind(&dto); err != nil {
-		response.Error(ctx, err)
+		response.Error(ctx, errors.WithCode(code.ErrBind, err.Error()))
 		return
 	}
 
-	data, err := u.UserApp.Login(dto)
+	data, err := application.UserApplication().Login(dto)
 	if err != nil {
 		response.Error(ctx, err)
 		return
@@ -74,12 +69,12 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 		logger.Error(err.Error())
 		return
 	}
-	dto := application.QrCodeDTO{
+	dto := types.QrCodeDTO{
 		Conn: conn,
 	}
 	defer conn.Close()
 	for {
-		codeRet := u.UserApp.QrCode(dto)
+		codeRet := application.UserApplication().QrCode(dto)
 		time.Sleep(time.Second)
 		_ = conn.WriteJSON(codeRet)
 		// 如果已经授权了，那么需要跳出循环，关闭ws连接
@@ -93,20 +88,21 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 //
 //	@Summary	扫描二维码
 //	@Tags		login
-//	@Accept		json
-//	@Produce	json
 //	@Param		req	query		application.ScanQrCodeDTO	true	"req"
 //	@Success	200	{object}	response.Result
 //	@Router		/scan-qr-code [get]
 func (u *UserHandler) ScanQrCode(ctx *gin.Context) {
-	var dto application.ScanQrCodeDTO
-	if err := ctx.ShouldBind(&dto); err != nil {
-		response.Error(ctx, err)
+	var dto types.ScanQrCodeDTO
+	if err := ctx.ShouldBindQuery(&dto); err != nil {
+		response.Error(ctx, errors.WithCode(code.ErrBind, err.Error()))
 		return
 	}
-	dto.Token = ctx.GetString(consts.ContextKeyToken)
+	if err := ctx.ShouldBindHeader(&dto); err != nil {
+		response.Error(ctx, errors.WithCode(code.ErrMissingHeader, err.Error()))
+		return
+	}
 
-	data, err := u.UserApp.ScanQrCode(dto)
+	data, err := application.UserApplication().ScanQrCode(dto)
 	if err != nil {
 		response.Error(ctx, err)
 		return
@@ -124,14 +120,17 @@ func (u *UserHandler) ScanQrCode(ctx *gin.Context) {
 //	@Success	200	{object}	response.Result
 //	@Router		/confirm-login [get]
 func (u *UserHandler) ConfirmLogin(ctx *gin.Context) {
-	var dto application.ConfirmLoginDTO
+	var dto types.ConfirmLoginDTO
 	if err := ctx.ShouldBind(&dto); err != nil {
-		response.Error(ctx, err)
+		response.Error(ctx, errors.WithCode(code.ErrBind, err.Error()))
 		return
 	}
-	dto.Token = ctx.GetString(consts.ContextKeyToken)
+	if err := ctx.ShouldBindHeader(&dto); err != nil {
+		response.Error(ctx, errors.WithCode(code.ErrMissingHeader, err.Error()))
+		return
+	}
 
-	if err := u.UserApp.ConfirmLogin(dto); err != nil {
+	if err := application.UserApplication().ConfirmLogin(dto); err != nil {
 		response.Error(ctx, err)
 		return
 	}

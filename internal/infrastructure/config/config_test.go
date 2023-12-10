@@ -6,7 +6,6 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	Init()
 	mysql := viper.GetString("mysql.dsn")
 	if mysql == "" {
 		t.Errorf("配置文件读取失败")

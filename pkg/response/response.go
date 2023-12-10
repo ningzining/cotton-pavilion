@@ -34,11 +34,3 @@ func Error(ctx *gin.Context, err error) {
 		return
 	}
 }
-
-func AuthError(ctx *gin.Context, err error) {
-	ctx.JSON(http.StatusUnauthorized, Result{
-		Code: 401,
-		Msg:  err.Error(),
-		Data: nil,
-	})
-}

@@ -6,15 +6,17 @@ import (
 	"user-center/internal/infrastructure/logger"
 )
 
-func Init() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./config")
-	viper.AddConfigPath("../config")
-	viper.AddConfigPath("../../config")
-	viper.AddConfigPath("../../../config")
-	err := viper.ReadInConfig()
-	if err != nil {
+var Config *viper.Viper
+
+func init() {
+	Config = viper.New()
+	Config.SetConfigName("config")
+	Config.SetConfigType("yaml")
+	Config.AddConfigPath("./config")
+	Config.AddConfigPath("../config")
+	Config.AddConfigPath("../../config")
+	Config.AddConfigPath("../../../config")
+	if err := Config.ReadInConfig(); err != nil {
 		logger.Fatal("配置文件读取失败", zap.String("error", err.Error()))
 	}
 }
