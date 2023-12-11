@@ -34,5 +34,9 @@ func NewRepositories(dsn string) *Repositories {
 }
 
 func (r Repositories) AutoMigrate() {
-	_ = r.db.AutoMigrate(entity.User{})
+	_ = r.db.AutoMigrate(&entity.User{})
+}
+
+func (r Repositories) Clean() {
+	_ = r.db.Migrator().DropTable(&entity.User{})
 }

@@ -16,7 +16,7 @@ type Application struct {
 
 func newApplication() *Application {
 	// 初始化redis,todo: 待使用
-	redis_cache.NewRedisCache(config.Config.GetString("redis.addr"), config.Config.GetString("redis.password"), config.Config.GetInt("redis.db"))
+	_ = redis_cache.NewRedisCache(config.Config.GetString("redis.addr"), config.Config.GetString("redis.password"), config.Config.GetInt("redis.db"))
 	// 初始化repo层
 	repositories := persistence.NewRepositories(config.Config.GetString("mysql.dsn"))
 	repositories.AutoMigrate()

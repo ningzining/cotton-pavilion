@@ -111,12 +111,13 @@ func (u *UserApplication) ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCode
 	}
 	temporaryToken, err := jwtutil.GenerateJwt(claims, consts.JwtSecret)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithCode(code.ErrTokenGenerate, err.Error())
 	}
 
 	// 更新二维码为授权中状态
 	qrCode.UpdateAuthorizing(temporaryToken)
 	u.QrCodeService.SaveQrCode(qrCode)
+
 	return &types.ScanQrCodeRet{
 		TemporaryToken: temporaryToken,
 	}, nil

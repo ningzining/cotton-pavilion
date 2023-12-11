@@ -17,7 +17,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 func (u UserRepository) Save(user *entity.User) error {
-	return u.DB.Save(user).Error
+	return u.DB.Save(&user).Error
 }
 
 func (u UserRepository) FindByMobile(mobile string) (*entity.User, error) {
