@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"io"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -20,46 +21,27 @@ const (
 )
 
 type Logger struct {
+	mu sync.Mutex
 	l  *zap.Logger
 	al *zap.AtomicLevel
 }
 
-func New(infoOut io.Writer, errOut io.Writer, level Level) *Logger {
-	if infoOut == nil {
-		infoOut = os.Stdout
-	}
-	if errOut == nil {
-		errOut = os.Stderr
-	}
-
+func New(out io.Writer, level Level) *Logger {
 	al := zap.NewAtomicLevelAt(level)
 	config := zap.NewProductionConfig()
 	config.EncoderConfig.EncodeTime = func(ts time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 		encoder.AppendString(ts.Format(time.DateTime))
 	}
 
-	infoLevel := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
-		return level <= al.Level()
-	})
-	errorLevel := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
-		return level > al.Level()
-	})
-
 	logger := zap.New(
-		zapcore.NewTee(
-			zapcore.NewCore(
-				zapcore.NewJSONEncoder(config.EncoderConfig),
-				zapcore.AddSync(infoOut),
-				infoLevel,
-			),
-			zapcore.NewCore(
-				zapcore.NewJSONEncoder(config.EncoderConfig),
-				zapcore.AddSync(errOut),
-				errorLevel,
-			),
+		zapcore.NewCore(
+			zapcore.NewConsoleEncoder(config.EncoderConfig),
+			//zapcore.NewJSONEncoder(config.EncoderConfig),
+			zapcore.AddSync(out),
+			al,
 		),
 		zap.AddCaller(),
-		zap.AddStacktrace(errorLevel),
+		zap.AddStacktrace(ErrorLevel),
 		zap.AddCallerSkip(2),
 	)
 
@@ -102,7 +84,7 @@ func (l *Logger) Sync() error {
 	return l.l.Sync()
 }
 
-var std = New(os.Stdout, os.Stdout, InfoLevel)
+var std = New(os.Stdout, InfoLevel)
 
 func Default() *Logger {
 	return std
@@ -116,6 +98,7 @@ func SetLevel(level Level) {
 	std.SetLevel(level)
 }
 
+// std logger
 func Debug(msg string, fields ...Field) {
 	std.Debug(msg, fields...)
 }

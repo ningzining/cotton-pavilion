@@ -7,7 +7,7 @@ import (
 	"time"
 	"user-center/internal/domain/entity"
 	"user-center/internal/domain/repository"
-	"user-center/internal/infrastructure/logger"
+	"user-center/pkg/logger"
 )
 
 type Repositories struct {

@@ -8,8 +8,8 @@ import (
 	"user-center/internal/domain/repository"
 	"user-center/internal/domain/service"
 	"user-center/internal/infrastructure/consts"
-	"user-center/internal/infrastructure/utils/crypto"
-	"user-center/internal/infrastructure/utils/jwtutils"
+	"user-center/internal/infrastructure/util/cryptoutil"
+	"user-center/internal/infrastructure/util/jwtutil"
 	"user-center/pkg/code"
 	"user-center/pkg/errors"
 )
@@ -31,22 +31,22 @@ func (u *UserApplication) Login(dto types.LoginDTO) (*types.LoginRet, error) {
 	if err != nil {
 		return nil, errors.WithCode(code.ErrDatabase, err.Error())
 	}
-	if user.Password != crypto.Md5Password(dto.Mobile, dto.Password) {
+	if user.Password != cryptoutil.Md5Password(dto.Mobile, dto.Password) {
 		return nil, errors.WithCode(code.ErrPasswordIncorrect, "密码不正确")
 	}
 
-	claims := jwtutils.Claims{
+	claims := jwtutil.Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:   consts.SystemName,
 			Subject:  consts.JwtSubject,
 			IssuedAt: jwt.NewNumericDate(time.Now()),
 		},
-		User: jwtutils.User{
+		User: jwtutil.User{
 			Id:       user.ID,
 			Username: user.Username,
 		},
 	}
-	token, err := jwtutils.GenerateJwt(claims, consts.JwtSecret)
+	token, err := jwtutil.GenerateJwt(claims, consts.JwtSecret)
 	if err != nil {
 		return nil, errors.WithCode(code.ErrTokenGenerate, err.Error())
 	}
@@ -61,7 +61,7 @@ func (u *UserApplication) Register(dto types.RegisterDTO) error {
 		Username: dto.Username,
 		Mobile:   dto.Mobile,
 		Email:    dto.Email,
-		Password: crypto.Md5Password(dto.Mobile, dto.Password),
+		Password: cryptoutil.Md5Password(dto.Mobile, dto.Password),
 	}
 	if err := u.UserRepo.Save(user); err != nil {
 		return errors.WithCode(code.ErrDatabase, err.Error())
@@ -101,7 +101,7 @@ func (u *UserApplication) ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCode
 	}
 
 	// 生成临时token
-	claims := jwtutils.Claims{
+	claims := jwtutil.Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    consts.SystemName,
 			Subject:   consts.JwtTemporarySubject,
@@ -109,7 +109,7 @@ func (u *UserApplication) ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCode
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 10)),
 		},
 	}
-	temporaryToken, err := jwtutils.GenerateJwt(claims, consts.JwtSecret)
+	temporaryToken, err := jwtutil.GenerateJwt(claims, consts.JwtSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -133,26 +133,26 @@ func (u *UserApplication) ConfirmLogin(dto types.ConfirmLoginDTO) error {
 	if dto.TemporaryToken != qrCode.TemporaryToken {
 		return errors.WithCode(code.ErrQrCodeInvalid, "扫描二维码和确认的手机不一致")
 	}
-	parseJwt, err := jwtutils.ParseJwt(dto.Token, consts.JwtSecret)
+	parseJwt, err := jwtutil.ParseJwt(dto.Token, consts.JwtSecret)
 	if err != nil {
 		return errors.WithCode(code.ErrTokenInvalid, err.Error())
 	}
 
 	// todo: 按需获取用户信息并放入token当中
 	// 生成web端的token
-	claims := jwtutils.Claims{
+	claims := jwtutil.Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    consts.SystemName,
 			Subject:   consts.JwtSubject,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 12)),
 		},
-		User: jwtutils.User{
+		User: jwtutil.User{
 			Id:       parseJwt.User.Id,
 			Username: parseJwt.User.Username,
 		},
 	}
-	token, err := jwtutils.GenerateJwt(claims, consts.JwtSecret)
+	token, err := jwtutil.GenerateJwt(claims, consts.JwtSecret)
 	if err != nil {
 		return errors.WithCode(code.ErrTokenGenerate, err.Error())
 	}

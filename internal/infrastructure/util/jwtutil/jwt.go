@@ -1,4 +1,4 @@
-package jwtutils
+package jwtutil
 
 import (
 	"github.com/golang-jwt/jwt/v5"

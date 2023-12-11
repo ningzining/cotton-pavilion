@@ -6,8 +6,8 @@ import (
 	"go.uber.org/zap"
 	"time"
 	"user-center/internal/infrastructure/config"
-	"user-center/internal/infrastructure/logger"
 	"user-center/internal/interfaces/router"
+	"user-center/pkg/logger"
 )
 
 func main() {

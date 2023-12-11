@@ -7,10 +7,10 @@ import (
 	"user-center/internal/domain/entity/enum"
 	"user-center/internal/infrastructure/application"
 	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
-	"user-center/internal/infrastructure/logger"
-	"user-center/internal/infrastructure/utils/wsutils"
+	"user-center/internal/infrastructure/util/wsutil"
 	"user-center/pkg/code"
 	"user-center/pkg/errors"
+	"user-center/pkg/logger"
 	"user-center/pkg/response"
 )
 
@@ -66,7 +66,7 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 
 // QrCode ws pc获取二维码
 func (u *UserHandler) QrCode(ctx *gin.Context) {
-	conn, err := wsutils.UpGrade(ctx.Writer, ctx.Request, nil)
+	conn, err := wsutil.UpGrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		logger.Error(err.Error())
 		return

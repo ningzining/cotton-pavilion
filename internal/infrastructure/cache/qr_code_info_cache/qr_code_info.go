@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 	"user-center/internal/domain/entity/do"
-	"user-center/internal/infrastructure/utils/timerutil"
+	"user-center/internal/infrastructure/util/timerutil"
 )
 
 func init() {

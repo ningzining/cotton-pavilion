@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"user-center/internal/infrastructure/logger"
+	"user-center/pkg/logger"
 )
 
 var Config *viper.Viper

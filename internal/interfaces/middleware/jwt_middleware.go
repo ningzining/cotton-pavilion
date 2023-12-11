@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"strings"
 	"user-center/internal/infrastructure/consts"
-	"user-center/internal/infrastructure/utils/jwtutils"
+	"user-center/internal/infrastructure/util/jwtutil"
 	"user-center/pkg/code"
 	"user-center/pkg/errors"
 	"user-center/pkg/response"
@@ -20,7 +20,7 @@ func JwtMiddleware() gin.HandlerFunc {
 		}
 
 		tokenStr := strings.Replace(authorization, "Bearer ", "", 1)
-		claims, err := jwtutils.ParseJwt(tokenStr, consts.JwtSecret)
+		claims, err := jwtutil.ParseJwt(tokenStr, consts.JwtSecret)
 		if err != nil {
 			response.Error(ctx, errors.WithCode(code.ErrTokenInvalid, "token解析异常，请重新登录"))
 			ctx.Abort()
