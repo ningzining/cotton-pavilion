@@ -1,27 +1,21 @@
 package main
 
 import (
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"time"
 	"user-center/internal/infrastructure/config"
+	"user-center/internal/interfaces/middleware"
 	"user-center/internal/interfaces/router"
 	"user-center/pkg/logger"
 )
 
 func main() {
-	engine := gin.Default()
+	engine := gin.New()
 	// 跨域处理
-	engine.Use(cors.New(
-		cors.Config{
-			AllowAllOrigins:  true,
-			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-			AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
-			AllowCredentials: false,
-			MaxAge:           12 * time.Hour,
-		},
-	))
+	engine.Use(gin.Recovery())
+	engine.Use(middleware.Logger())
+	engine.Use(middleware.RequestID())
+	engine.Use(middleware.Cors())
 
 	// 注册路由
 	router.Register(engine)
