@@ -108,7 +108,6 @@ func (p *LogFormatterParams) IsOutputColor() bool {
 	return consoleColorMode == forceColor || (consoleColorMode == autoColor && p.isTerm)
 }
 
-// defaultLogFormatter is the default log format function Logger middleware uses.
 var defaultLogFormatter = func(param LogFormatterParams) string {
 	var statusColor, methodColor, resetColor string
 	if param.IsOutputColor() {
@@ -139,18 +138,6 @@ func Logger() gin.HandlerFunc {
 		Output:    nil,
 		SkipPaths: nil,
 	})
-}
-
-type responseBodyWriter struct {
-	gin.ResponseWriter               // 继承原有 gin.ResponseWriter
-	bodyBuf            *bytes.Buffer // Body 内容临时存储位置，这里指针，原因这个存储对象要复用
-}
-
-func (w *responseBodyWriter) Write(b []byte) (int, error) {
-	if count, err := w.bodyBuf.Write(b); err != nil { // 写入数据时，也写入一份数据到缓存中
-		return count, err
-	}
-	return w.ResponseWriter.Write(b) // 原始框架数据写入
 }
 
 // LoggerWithConfig instance a Logger middleware with config.
@@ -192,58 +179,93 @@ func LoggerWithConfig(conf LoggerConfig) gin.HandlerFunc {
 		start := time.Now()
 		path := c.Request.URL.Path
 
-		// todo: 待优化
-		var request []byte
-		if c.Request.Method != http.MethodGet {
-			requestBytes, err := io.ReadAll(c.Request.Body)
-			if err != nil {
-				log.Error(err.Error())
-				return
-			}
-			// 删除空格和换行符,windows下换行符是\r\n,linux环境下换行符是\n
-			requestBytes = bytes.ReplaceAll(requestBytes, []byte(" "), []byte{})
-			requestBytes = bytes.ReplaceAll(requestBytes, []byte("\r\n"), []byte{})
-			requestBytes = bytes.ReplaceAll(requestBytes, []byte("\n"), []byte{})
-			request = requestBytes
-			c.Request.Body = io.NopCloser(bytes.NewBuffer(request))
-		} else {
-			query := c.Request.URL.Query()
-			queryParams := make(map[string]any)
-			for k, v := range query {
-				queryParams[k] = v
-			}
-			jsonBytes, err := json.Marshal(queryParams)
-			if err != nil {
-				log.Error(err.Error())
-				return
-			}
-			request = jsonBytes
-		}
+		requestBytes := requestFromCtx(c)
 
-		writer := &responseBodyWriter{
-			c.Writer,
-			bytes.NewBuffer([]byte{}),
-		}
+		// 生成自定义的writer代替gin.DefaultWriter
+		writer := newWriter(c)
 		c.Writer = writer
 
 		c.Next()
 
 		if _, ok := skip[path]; !ok {
+			end := time.Now()
 			param := LogFormatterParams{
-				Keys:         c.Keys,
-				Method:       c.Request.Method,
-				ClientIP:     c.ClientIP(),
+				TimeStamp:    end,
 				StatusCode:   c.Writer.Status(),
-				ErrorMessage: c.Errors.ByType(gin.ErrorTypePrivate).String(),
+				Latency:      end.Sub(start),
+				ClientIP:     c.ClientIP(),
+				Method:       c.Request.Method,
 				Path:         c.Request.RequestURI,
-				Request:      request,
+				ErrorMessage: c.Errors.ByType(gin.ErrorTypePrivate).String(),
+				isTerm:       false,
+				Request:      requestBytes,
 				Response:     writer.bodyBuf.Bytes(),
+				Keys:         c.Keys,
 			}
-			param.TimeStamp = time.Now()
-			param.Latency = param.TimeStamp.Sub(start)
 
 			// todo: 待研究存入接口日志
 			log.Info(formatter(param))
 		}
 	}
+}
+
+type responseWriter struct {
+	gin.ResponseWriter               // 继承原有 gin.ResponseWriter
+	bodyBuf            *bytes.Buffer // Body 内容临时存储位置，这里指针，原因这个存储对象要复用
+}
+
+func (w *responseWriter) Write(b []byte) (int, error) {
+	if count, err := w.bodyBuf.Write(b); err != nil { // 写入数据时，也写入一份数据到缓存中
+		return count, err
+	}
+	return w.ResponseWriter.Write(b) // 原始框架数据写入
+}
+
+func newWriter(c *gin.Context) *responseWriter {
+	return &responseWriter{
+		c.Writer,
+		bytes.NewBuffer([]byte{}),
+	}
+}
+
+func requestFromCtx(c *gin.Context) []byte {
+	if c.Request.Method == http.MethodGet {
+		return requestParam(c)
+	}
+
+	return requestBody(c)
+}
+
+func requestBody(c *gin.Context) []byte {
+	requestBytes, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Error(err.Error())
+		return nil
+	}
+
+	// 重新在缓冲区中写入数据
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBytes))
+
+	// 删除空格和换行符,windows下换行符是\r\n,linux环境下换行符是\n
+	requestBytes = bytes.ReplaceAll(requestBytes, []byte(" "), []byte{})
+	requestBytes = bytes.ReplaceAll(requestBytes, []byte("\r\n"), []byte{})
+	requestBytes = bytes.ReplaceAll(requestBytes, []byte("\n"), []byte{})
+
+	return requestBytes
+}
+
+func requestParam(c *gin.Context) []byte {
+	query := c.Request.URL.Query()
+
+	queryParams := make(map[string]any)
+	for k, v := range query {
+		queryParams[k] = v
+	}
+
+	requestParamBytes, err := json.Marshal(queryParams)
+	if err != nil {
+		log.Error(err.Error())
+		return nil
+	}
+	return requestParamBytes
 }
