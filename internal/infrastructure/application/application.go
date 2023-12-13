@@ -1,24 +1,24 @@
 package application
 
 import (
+	"github.com/spf13/viper"
 	"user-center/internal/application"
 	"user-center/internal/infrastructure/cache/redis_cache"
-	"user-center/internal/infrastructure/config"
 	"user-center/internal/infrastructure/persistence"
 	"user-center/internal/infrastructure/service"
 )
-
-var std = newApplication()
 
 type Application struct {
 	UserApplication *application.UserApplication
 }
 
+var std *Application
+
 func newApplication() *Application {
 	// 初始化redis,todo: 待使用
-	_ = redis_cache.NewRedisCache(config.Config.GetString("redis.addr"), config.Config.GetString("redis.password"), config.Config.GetInt("redis.db"))
+	_ = redis_cache.NewRedisCache(viper.GetString("redis.addr"), viper.GetString("redis.password"), viper.GetInt("redis.db"))
 	// 初始化repo层
-	repositories := persistence.NewRepositories(config.Config.GetString("mysql.dsn"))
+	repositories := persistence.NewRepositories(viper.GetString("mysql.dsn"))
 	repositories.AutoMigrate()
 	// 初始化service层
 	services := service.New()
@@ -29,5 +29,8 @@ func newApplication() *Application {
 }
 
 func UserApplication() *application.UserApplication {
+	if std == nil {
+		std = newApplication()
+	}
 	return std.UserApplication
 }

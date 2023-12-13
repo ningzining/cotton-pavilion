@@ -223,8 +223,8 @@ func (w *responseWriter) Write(b []byte) (int, error) {
 
 func newWriter(c *gin.Context) *responseWriter {
 	return &responseWriter{
-		c.Writer,
-		bytes.NewBuffer([]byte{}),
+		ResponseWriter: c.Writer,
+		bodyBuf:        bytes.NewBuffer([]byte{}),
 	}
 }
 
