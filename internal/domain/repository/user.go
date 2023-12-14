@@ -1,11 +1,11 @@
 package repository
 
 import (
-	"user-center/internal/domain/entity"
+	"user-center/internal/domain/model"
 )
 
-type IUserRepository interface {
-	Save(user *entity.User) error
-	FindByMobile(mobile string) (*entity.User, error)
-	FindById(userId uint64) (*entity.User, error)
+type UserRepository interface {
+	Save(user *model.User) error
+	FindByMobile(mobile string) (*model.User, error)
+	FindById(userId uint64) (*model.User, error)
 }

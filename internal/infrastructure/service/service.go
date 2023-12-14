@@ -1,15 +1,18 @@
 package service
 
-import (
-	"user-center/internal/domain/service"
-)
+import "user-center/internal/domain/service"
 
-type Service struct {
-	QrCodeService service.IQrCodeService
+type Service interface {
+	QrCodeService() service.IQrCodeService
 }
 
-func New() *Service {
-	return &Service{
-		QrCodeService: service.NewQrCodeService(),
-	}
+type svc struct {
+}
+
+func NewService() Service {
+	return &svc{}
+}
+
+func (s *svc) QrCodeService() service.IQrCodeService {
+	return service.NewQrCodeService()
 }

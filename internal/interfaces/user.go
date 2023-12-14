@@ -3,10 +3,12 @@ package interfaces
 import (
 	"github.com/gin-gonic/gin"
 	"time"
+	"user-center/internal/application"
 	"user-center/internal/application/types"
-	"user-center/internal/domain/entity/enum"
-	"user-center/internal/infrastructure/application"
+	"user-center/internal/domain/model/enum"
 	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
+	"user-center/internal/infrastructure/service"
+	"user-center/internal/infrastructure/store"
 	"user-center/internal/infrastructure/util/wsutil"
 	"user-center/pkg/code"
 	"user-center/pkg/errors"
@@ -15,10 +17,13 @@ import (
 )
 
 type UserHandler struct {
+	Application application.Application
 }
 
-func NewUserHandler() *UserHandler {
-	return &UserHandler{}
+func NewUserHandler(store store.Factory, service service.Service) *UserHandler {
+	return &UserHandler{
+		Application: application.NewApplication(store, service),
+	}
 }
 
 // Register
@@ -35,7 +40,7 @@ func (u *UserHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	if err := application.UserApplication().Register(dto); err != nil {
+	if err := u.Application.UserApplication().Register(dto); err != nil {
 		response.Error(ctx, err)
 		return
 	}
@@ -56,7 +61,7 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	data, err := application.UserApplication().Login(dto)
+	data, err := u.Application.UserApplication().Login(dto)
 	if err != nil {
 		response.Error(ctx, err)
 		return
@@ -79,7 +84,7 @@ func (u *UserHandler) QrCode(ctx *gin.Context) {
 		Conn: conn,
 	}
 	for {
-		codeRet, err := application.UserApplication().QrCode(dto)
+		codeRet, err := u.Application.UserApplication().QrCode(dto)
 		if err != nil {
 			return
 		}
@@ -111,7 +116,7 @@ func (u *UserHandler) ScanQrCode(ctx *gin.Context) {
 		return
 	}
 
-	data, err := application.UserApplication().ScanQrCode(dto)
+	data, err := u.Application.UserApplication().ScanQrCode(dto)
 	if err != nil {
 		response.Error(ctx, err)
 		return
@@ -139,7 +144,7 @@ func (u *UserHandler) ConfirmLogin(ctx *gin.Context) {
 		return
 	}
 
-	if err := application.UserApplication().ConfirmLogin(dto); err != nil {
+	if err := u.Application.UserApplication().ConfirmLogin(dto); err != nil {
 		response.Error(ctx, err)
 		return
 	}

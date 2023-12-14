@@ -3,7 +3,7 @@ package qr_code_info_cache
 import (
 	"sync"
 	"time"
-	"user-center/internal/domain/entity/do"
+	"user-center/internal/domain/model/do"
 	"user-center/internal/infrastructure/util/timerutil"
 )
 

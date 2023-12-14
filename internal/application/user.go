@@ -4,30 +4,38 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 	"user-center/internal/application/types"
-	"user-center/internal/domain/entity"
-	"user-center/internal/domain/repository"
-	"user-center/internal/domain/service"
+	"user-center/internal/domain/model"
 	"user-center/internal/infrastructure/consts"
+	"user-center/internal/infrastructure/service"
+	"user-center/internal/infrastructure/store"
 	"user-center/internal/infrastructure/util/cryptoutil"
 	"user-center/internal/infrastructure/util/jwtutil"
 	"user-center/pkg/code"
 	"user-center/pkg/errors"
 )
 
-type UserApplication struct {
-	UserRepo      repository.IUserRepository
-	QrCodeService service.IQrCodeService
+type UserApplication interface {
+	Login(dto types.LoginDTO) (*types.LoginRet, error)
+	Register(dto types.RegisterDTO) error
+	QrCode(dto types.QrCodeDTO) (*types.QrCodeRet, error)
+	ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCodeRet, error)
+	ConfirmLogin(dto types.ConfirmLoginDTO) error
 }
 
-func NewUserApplication(userRepository repository.IUserRepository, codeService service.IQrCodeService) *UserApplication {
-	return &UserApplication{
-		UserRepo:      userRepository,
-		QrCodeService: codeService,
+type userApplication struct {
+	Store   store.Factory
+	Service service.Service
+}
+
+func NewUserApplication(store store.Factory, service service.Service) *userApplication {
+	return &userApplication{
+		Store:   store,
+		Service: service,
 	}
 }
 
-func (u *UserApplication) Login(dto types.LoginDTO) (*types.LoginRet, error) {
-	user, err := u.UserRepo.FindByMobile(dto.Mobile)
+func (u *userApplication) Login(dto types.LoginDTO) (*types.LoginRet, error) {
+	user, err := u.Store.UserRepository().FindByMobile(dto.Mobile)
 	if err != nil {
 		return nil, errors.WithCode(code.ErrDatabase, err.Error())
 	}
@@ -56,29 +64,29 @@ func (u *UserApplication) Login(dto types.LoginDTO) (*types.LoginRet, error) {
 	}, nil
 }
 
-func (u *UserApplication) Register(dto types.RegisterDTO) error {
-	user := &entity.User{
+func (u *userApplication) Register(dto types.RegisterDTO) error {
+	user := &model.User{
 		Username: dto.Username,
 		Mobile:   dto.Mobile,
 		Email:    dto.Email,
 		Password: cryptoutil.Md5Password(dto.Mobile, dto.Password),
 	}
-	if err := u.UserRepo.Save(user); err != nil {
+	if err := u.Store.UserRepository().Save(user); err != nil {
 		return errors.WithCode(code.ErrDatabase, err.Error())
 	}
 	return nil
 }
 
-func (u *UserApplication) QrCode(dto types.QrCodeDTO) (*types.QrCodeRet, error) {
-	ticket := u.QrCodeService.GetTicket(dto.Conn)
-	qrCode, err := u.QrCodeService.GetQrCode(ticket)
+func (u *userApplication) QrCode(dto types.QrCodeDTO) (*types.QrCodeRet, error) {
+	ticket := u.Service.QrCodeService().GetTicket(dto.Conn)
+	qrCode, err := u.Service.QrCodeService().GetQrCode(ticket)
 	if err != nil {
 		return nil, errors.WithCode(code.ErrQrCodeInvalid, err.Error())
 	}
 
 	// 如果已经授权，则在缓存中移除相关信息
 	if qrCode.IsAuthorized() {
-		u.QrCodeService.Remove(dto.Conn, qrCode.Ticket)
+		u.Service.QrCodeService().Remove(dto.Conn, qrCode.Ticket)
 	}
 
 	return &types.QrCodeRet{
@@ -88,8 +96,8 @@ func (u *UserApplication) QrCode(dto types.QrCodeDTO) (*types.QrCodeRet, error) 
 	}, nil
 }
 
-func (u *UserApplication) ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCodeRet, error) {
-	qrCode, err := u.QrCodeService.GetQrCode(dto.Ticket)
+func (u *userApplication) ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCodeRet, error) {
+	qrCode, err := u.Service.QrCodeService().GetQrCode(dto.Ticket)
 	if err != nil {
 		return nil, errors.WithCode(code.ErrQrCodeInvalid, err.Error())
 	}
@@ -116,15 +124,15 @@ func (u *UserApplication) ScanQrCode(dto types.ScanQrCodeDTO) (*types.ScanQrCode
 
 	// 更新二维码为授权中状态
 	qrCode.UpdateAuthorizing(temporaryToken)
-	u.QrCodeService.SaveQrCode(qrCode)
+	u.Service.QrCodeService().SaveQrCode(qrCode)
 
 	return &types.ScanQrCodeRet{
 		TemporaryToken: temporaryToken,
 	}, nil
 }
 
-func (u *UserApplication) ConfirmLogin(dto types.ConfirmLoginDTO) error {
-	qrCode, err := u.QrCodeService.GetQrCode(dto.Ticket)
+func (u *userApplication) ConfirmLogin(dto types.ConfirmLoginDTO) error {
+	qrCode, err := u.Service.QrCodeService().GetQrCode(dto.Ticket)
 	if err != nil {
 		return errors.WithCode(code.ErrQrCodeInvalid, err.Error())
 	}
@@ -160,6 +168,6 @@ func (u *UserApplication) ConfirmLogin(dto types.ConfirmLoginDTO) error {
 
 	// 更新二维码状态为已授权
 	qrCode.UpdateAuthorized(token)
-	u.QrCodeService.SaveQrCode(qrCode)
+	u.Service.QrCodeService().SaveQrCode(qrCode)
 	return nil
 }

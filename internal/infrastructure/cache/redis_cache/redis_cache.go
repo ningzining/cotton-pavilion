@@ -16,7 +16,7 @@ func NewRedisCache(addr, password string, db int) *RedisCache {
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password,
-		DB:       db, // use default DB
+		DB:       db, // use default db
 		Protocol: 3,  // specify 2 for RESP 2 or 3 for RESP 3
 	})
 
