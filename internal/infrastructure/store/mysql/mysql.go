@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"errors"
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"sync"
@@ -25,7 +25,7 @@ var (
 	once         sync.Once
 )
 
-func GetMysqlFactory(dsn string) (store.Factory, error) {
+func GetMysqlFactory(dsn string) store.Factory {
 	var err error
 	var dbIns *gorm.DB
 	once.Do(func() {
@@ -34,9 +34,10 @@ func GetMysqlFactory(dsn string) (store.Factory, error) {
 	})
 
 	if mysqlFactory == nil || err != nil {
-		return nil, errors.New("mysql 启动异常，请检查")
+		logger.Fatal("mysql连接异常", zap.String("error", err.Error()))
+		return nil
 	}
-	return mysqlFactory, nil
+	return mysqlFactory
 }
 
 func newMysql(dsn string) (*gorm.DB, error) {
@@ -48,9 +49,9 @@ func newMysql(dsn string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(500)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+	sqlDB.SetMaxIdleConns(100)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Minute)
 
 	logger.Info("mysql start success")
 	return db, nil

@@ -1,7 +1,7 @@
 package application
 
 import (
-	"user-center/internal/infrastructure/service"
+	"user-center/internal/domain/service"
 	"user-center/internal/infrastructure/store"
 )
 
@@ -22,5 +22,5 @@ func NewApplication(store store.Factory, service service.Service) Application {
 }
 
 func (a *app) UserApplication() UserApplication {
-	return NewUserApplication(a.Store, a.Service)
+	return newUserApplication(a.Store, a.Service)
 }

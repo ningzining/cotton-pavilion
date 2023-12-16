@@ -5,8 +5,8 @@ import (
 	"time"
 	"user-center/internal/application/types"
 	"user-center/internal/domain/model"
+	"user-center/internal/domain/service"
 	"user-center/internal/infrastructure/consts"
-	"user-center/internal/infrastructure/service"
 	"user-center/internal/infrastructure/store"
 	"user-center/internal/infrastructure/util/cryptoutil"
 	"user-center/internal/infrastructure/util/jwtutil"
@@ -27,7 +27,7 @@ type userApplication struct {
 	Service service.Service
 }
 
-func NewUserApplication(store store.Factory, service service.Service) *userApplication {
+func newUserApplication(store store.Factory, service service.Service) UserApplication {
 	return &userApplication{
 		Store:   store,
 		Service: service,

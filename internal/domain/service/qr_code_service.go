@@ -12,13 +12,7 @@ import (
 	"user-center/internal/infrastructure/cache/qr_code_info_cache"
 )
 
-type QrCodeService struct{}
-
-func NewQrCodeService() IQrCodeService {
-	return &QrCodeService{}
-}
-
-type IQrCodeService interface {
+type QrCodeService interface {
 	GenerateNew() *do.QrCode
 	GetTicket(conn *websocket.Conn) string
 	GetQrCode(ticket string) (*do.QrCode, error)
@@ -26,7 +20,13 @@ type IQrCodeService interface {
 	SaveQrCode(qrCode *do.QrCode)
 }
 
-func (q QrCodeService) GetTicket(conn *websocket.Conn) string {
+type qrCodeService struct{}
+
+func newQrCodeService() QrCodeService {
+	return &qrCodeService{}
+}
+
+func (q qrCodeService) GetTicket(conn *websocket.Conn) string {
 	var resTicket string
 	ticket, b := qr_code_conn_cache.Get(conn)
 	if !b {
@@ -41,7 +41,7 @@ func (q QrCodeService) GetTicket(conn *websocket.Conn) string {
 	return resTicket
 }
 
-func (q QrCodeService) GenerateNew() *do.QrCode {
+func (q qrCodeService) GenerateNew() *do.QrCode {
 	ticket := strings.ReplaceAll(uuid.New().String(), "-", "")
 	return &do.QrCode{
 		Ticket:    ticket,
@@ -50,7 +50,7 @@ func (q QrCodeService) GenerateNew() *do.QrCode {
 	}
 }
 
-func (q QrCodeService) GetQrCode(ticket string) (*do.QrCode, error) {
+func (q qrCodeService) GetQrCode(ticket string) (*do.QrCode, error) {
 	qrCode, ok := qr_code_info_cache.Get(ticket)
 	if !ok {
 		return nil, errors.New("二维码不存在")
@@ -63,11 +63,11 @@ func (q QrCodeService) GetQrCode(ticket string) (*do.QrCode, error) {
 }
 
 // Remove 删除二维码信息和连接的信息
-func (q QrCodeService) Remove(conn *websocket.Conn, ticket string) {
+func (q qrCodeService) Remove(conn *websocket.Conn, ticket string) {
 	qr_code_conn_cache.Remove(conn)
 	qr_code_info_cache.Remove(ticket)
 }
 
-func (q QrCodeService) SaveQrCode(qrCode *do.QrCode) {
+func (q qrCodeService) SaveQrCode(qrCode *do.QrCode) {
 	qr_code_info_cache.Save(qrCode.Ticket, qrCode)
 }
