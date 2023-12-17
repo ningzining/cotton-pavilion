@@ -8,8 +8,14 @@ type RedisCache struct {
 	client *redis.Client
 }
 
-func (r RedisCache) Client() *redis.Client {
-	return r.client
+var redisCache *RedisCache
+
+func Client() *RedisCache {
+	return redisCache
+}
+
+func SetClient(client *RedisCache) {
+	redisCache = client
 }
 
 func NewRedisCache(addr, password string, db int) *RedisCache {

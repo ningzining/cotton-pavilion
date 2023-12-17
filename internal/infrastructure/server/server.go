@@ -17,21 +17,11 @@ type Server struct {
 }
 
 func New() *Server {
-	// 读取配置文件
-	config.LoadConfig()
-	// 初始化redis
-	_ = redis_cache.NewRedisCache(viper.GetString("redis.addr"), viper.GetString("redis.password"), viper.GetInt("redis.db"))
-	// 初始化repo层
-	repositoryFactory := mysql.GetMysqlFactory(viper.GetString("mysql.dsn"))
-	repositoryFactory.AutoMigrate()
-	store.SetClient(repositoryFactory)
+	initConfig()
 
-	engine := gin.New()
-	engine.Use(middleware.DefaultMiddlewares()...)
+	server := createServer()
 
-	return &Server{
-		Engine: engine,
-	}
+	return server
 }
 
 func (s Server) Run() {
@@ -40,4 +30,33 @@ func (s Server) Run() {
 		logger.Fatal("http server start error", zap.String("err", err.Error()))
 		return
 	}
+}
+
+func initConfig() {
+	// 读取配置文件
+	config.LoadConfig()
+	// 初始化redis
+	_ = redis_cache.NewRedisCache(viper.GetString("redis.addr"), viper.GetString("redis.password"), viper.GetInt("redis.db"))
+	// 初始化repo层
+	repositoryFactory := mysql.GetMysqlFactory(viper.GetString("mysql.dsn"))
+	repositoryFactory.AutoMigrate()
+	store.SetClient(repositoryFactory)
+}
+
+func createServer() *Server {
+	engine := gin.New()
+	server := &Server{
+		Engine: engine,
+	}
+
+	initServer(server)
+	return server
+}
+
+func initServer(s *Server) {
+	s.installMiddlewares()
+}
+
+func (s Server) installMiddlewares() {
+	s.Engine.Use(middleware.DefaultMiddlewares()...)
 }
