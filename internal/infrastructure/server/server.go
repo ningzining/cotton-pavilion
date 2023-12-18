@@ -44,9 +44,8 @@ func initConfig() {
 }
 
 func createServer() *Server {
-	engine := gin.New()
 	server := &Server{
-		Engine: engine,
+		Engine: gin.New(),
 	}
 
 	initServer(server)
