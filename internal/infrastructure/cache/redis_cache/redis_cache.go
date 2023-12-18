@@ -2,6 +2,7 @@ package redis_cache
 
 import (
 	"github.com/redis/go-redis/v9"
+	"os"
 )
 
 type RedisCache struct {
@@ -19,6 +20,13 @@ func SetClient(client *RedisCache) {
 }
 
 func NewRedisCache(addr, password string, db int) *RedisCache {
+	if addr == "" {
+		addr = os.Getenv("REDIS_ADDR")
+	}
+	if password == "" {
+		password = os.Getenv("REDIS_PASSWORD")
+	}
+
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password,

@@ -4,6 +4,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"os"
 	"sync"
 	"time"
 	"user-center/internal/domain/model"
@@ -29,6 +30,10 @@ func GetMysqlFactory(dsn string) store.Factory {
 	var err error
 	var dbIns *gorm.DB
 	once.Do(func() {
+		if dsn == "" {
+			dsn = os.Getenv("MYSQL_DSN")
+			return
+		}
 		dbIns, err = newMysql(dsn)
 		mysqlFactory = &Repository{DB: dbIns}
 	})
