@@ -31,8 +31,8 @@ jobs:
       uses: docker/login-action@v3.0.0
       with:
         registry: registry.cn-hangzhou.aliyuncs.com
-        username: ${{ secrets.ALIHUB_USERNAME }}
-        password: ${{ secrets.ALIHUB_PASSWORD }}
+        username: ${{ cotton-pavilion.ALIHUB_USERNAME }}
+        password: ${{ cotton-pavilion.ALIHUB_PASSWORD }}
 
     - name: Build and push to Ali
       uses: docker/build-push-action@v5.1.0
