@@ -19,6 +19,5 @@ FROM alpine as prod
 WORKDIR /build
 
 COPY --from=builder /build/main .
-COPY /config/config.yaml /build/config/
 
 CMD ["./main"]
