@@ -10,48 +10,47 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     environment:
       name: cotton-pavilion
     steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Go version 1.21
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-
-    - name: Test
-      run: go test -v ./...
-    # 镜像推送到 阿里云仓库
-    - name: Login to the Ali Registry
-      uses: docker/login-action@v3.0.0
-      with:
-        registry: registry.cn-hangzhou.aliyuncs.com
-        username: ${{ secrets.ALIHUB_USERNAME }}
-        password: ${{ secrets.ALIHUB_PASSWORD }}
-
-    - name: Build and push to Ali Registry
-      uses: docker/build-push-action@v5.1.0
-      with:
-        context: .
-        push: true
-        platforms: linux/amd64
-        tags: |
-          registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIHUB_NAMESPACE }}/cotton-pavilion:latest
-
-    - name: Deploy to Ali Server
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.ALI_ECS_HOST }}
-        port: ${{ secrets.ALI_ECS_PORT }}
-        username: ${{ secrets.ALI_ECS_USER }}
-        password: ${{ secrets.ALI_ECS_PASSWORD }}
-        script: | # 重启更新镜像
-          docker login --username=${{ secrets.ALIHUB_USERNAME }} --password=${{ secrets.ALIHUB_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
-          docker pull registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIHUB_NAMESPACE }}/cotton-pavilion:latest
-          docker stop cotton-pavilion
-          docker rm cotton-pavilion
-          docker run -d -v /config/config.yaml:/config/config.yaml --name cotton-pavilion -p 8080:8080 registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIHUB_NAMESPACE }}/cotton-pavilion:latest
+      - uses: actions/checkout@v3
+      # 设置go的版本号
+      - name: Set up Go version 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      # 进行所有单元测试
+      - name: Test
+        run: go test -v ./...
+      # 登录阿里云docker仓库
+      - name: Login to the Ali Registry
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: registry.cn-hangzhou.aliyuncs.com
+          username: ${{ secrets.ALIHUB_USERNAME }} # 阿里云docker仓库账号
+          password: ${{ secrets.ALIHUB_PASSWORD }} # 阿里云docker仓库密码
+      # 推送镜像到阿里云仓库
+      - name: Build and push to Ali Registry
+        uses: docker/build-push-action@v5.1.0
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: |
+            registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIHUB_NAMESPACE }}/cotton-pavilion:latest
+      # 发布服务
+      - name: Deploy to Ali Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.ALI_ECS_HOST }} # 服务器地址
+          port: ${{ secrets.ALI_ECS_PORT }} # 服务器端口
+          username: ${{ secrets.ALI_ECS_USER }} # 服务器账号
+          password: ${{ secrets.ALI_ECS_PASSWORD }} # 服务器密码
+          script: | # 重启并更新镜像
+            docker login --username=${{ secrets.ALIHUB_USERNAME }} --password=${{ secrets.ALIHUB_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
+            docker pull registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIHUB_NAMESPACE }}/cotton-pavilion:latest
+            docker stop cotton-pavilion
+            docker rm cotton-pavilion
+            docker run -d -v /config/config.yaml:/config/config.yaml --name cotton-pavilion -p 8080:8080 registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIHUB_NAMESPACE }}/cotton-pavilion:latest
