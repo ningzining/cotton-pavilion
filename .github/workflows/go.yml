@@ -43,4 +43,4 @@ jobs:
         push: true
         platforms: linux/amd64
         tags: |
-          registry.cn-hangzhou.aliyuncs.com/entangledcotton/cotton-pavilion:latest
+          registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIHUB_NAMESPACE }}/cotton-pavilion:latest
