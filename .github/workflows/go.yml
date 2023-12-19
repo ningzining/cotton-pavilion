@@ -47,7 +47,8 @@ jobs:
       with:
         host: ${{ secrets.ALI_ECS_HOST }}
         port: ${{ secrets.ALI_ECS_PORT }}
-        passphrase: ${{ secrets.SSH_PRIVATE_KEY }}
+        username: ${{ secrets.ALI_ECS_USER }}
+        password: ${{ secrets.ALI_ECS_PASSWORD }}
         script: | # 重启更新镜像
           docker login --username=${{ secrets.ALIHUB_USERNAME }} --password=${{ secrets.ALIHUB_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
           docker pull registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIHUB_NAMESPACE }}/cotton-pavilion:latest
