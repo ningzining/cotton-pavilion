@@ -4,7 +4,6 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"os"
 	"sync"
 	"time"
 	"user-center/internal/domain/model"
@@ -17,8 +16,12 @@ type Repository struct {
 	DB *gorm.DB
 }
 
-func (r *Repository) UserRepository() repository.UserRepository {
+func (r Repository) UserRepository() repository.UserRepository {
 	return NewUserRepository(r)
+}
+
+func (r Repository) ImageRepository() repository.ImageRepository {
+	return NewImageRepository(r)
 }
 
 var (
@@ -30,10 +33,6 @@ func GetMysqlFactory(dsn string) store.Factory {
 	var err error
 	var dbIns *gorm.DB
 	once.Do(func() {
-		if dsn == "" {
-			dsn = os.Getenv("MYSQL_DSN")
-			return
-		}
 		dbIns, err = newMysql(dsn)
 		mysqlFactory = &Repository{DB: dbIns}
 	})
@@ -62,10 +61,12 @@ func newMysql(dsn string) (*gorm.DB, error) {
 	return db, nil
 }
 
-func (r *Repository) AutoMigrate() {
+func (r Repository) AutoMigrate() {
 	_ = r.DB.AutoMigrate(&model.User{})
+	_ = r.DB.AutoMigrate(&model.Image{})
 }
 
-func (r *Repository) Clean() {
+func (r Repository) Clean() {
 	_ = r.DB.Migrator().DropTable(&model.User{})
+	_ = r.DB.Migrator().DropTable(&model.Image{})
 }

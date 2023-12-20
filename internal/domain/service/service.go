@@ -16,6 +16,6 @@ func NewService(store store.Factory) Service {
 	}
 }
 
-func (s *svc) QrCodeService() QrCodeService {
+func (s svc) QrCodeService() QrCodeService {
 	return newQrCodeService()
 }

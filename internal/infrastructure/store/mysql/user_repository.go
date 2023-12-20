@@ -3,13 +3,14 @@ package mysql
 import (
 	"gorm.io/gorm"
 	"user-center/internal/domain/model"
+	"user-center/internal/domain/repository"
 )
 
 type UserRepository struct {
 	db *gorm.DB
 }
 
-func NewUserRepository(repository *Repository) *UserRepository {
+func NewUserRepository(repository Repository) repository.UserRepository {
 	return &UserRepository{
 		db: repository.DB,
 	}

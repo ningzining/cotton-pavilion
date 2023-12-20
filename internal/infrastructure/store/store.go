@@ -5,9 +5,11 @@ import "user-center/internal/domain/repository"
 var client Factory
 
 type Factory interface {
-	UserRepository() repository.UserRepository
 	AutoMigrate()
 	Clean()
+
+	UserRepository() repository.UserRepository
+	ImageRepository() repository.ImageRepository
 }
 
 func Client() Factory {
