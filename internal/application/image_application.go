@@ -2,13 +2,13 @@ package application
 
 import (
 	"fmt"
+	"github.com/ningzining/cotton-pavilion/internal/application/types"
+	"github.com/ningzining/cotton-pavilion/internal/domain/model"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/store"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/third_party"
+	"github.com/ningzining/cotton-pavilion/pkg/logger"
 	"path/filepath"
 	"time"
-	"user-center/internal/application/types"
-	"user-center/internal/domain/model"
-	"user-center/internal/infrastructure/store"
-	"user-center/internal/infrastructure/third_party"
-	"user-center/pkg/logger"
 )
 
 type ImageApplication interface {
@@ -17,13 +17,11 @@ type ImageApplication interface {
 
 type imageApplication struct {
 	Store store.Factory
-	oss   third_party.Oss
 }
 
-func newImageApplication(store store.Factory, oss third_party.Oss) ImageApplication {
+func newImageApplication(store store.Factory) ImageApplication {
 	return &imageApplication{
 		Store: store,
-		oss:   oss,
 	}
 }
 
@@ -36,7 +34,12 @@ func (i imageApplication) Upload(dto types.UploadDTO) (*types.UploadRet, error) 
 	}
 
 	url := fmt.Sprintf("%s%s", "https://cotton-pavilion.oss-cn-hangzhou.aliyuncs.com/", objectName)
-	if err := i.oss.PutObject(objectName, file); err != nil {
+
+	ossClient, err := third_party.NewOssClient(nil)
+	if err != nil {
+		return nil, err
+	}
+	if err := ossClient.PutObject(objectName, file); err != nil {
 		logger.Error(err.Error())
 		return nil, err
 	}

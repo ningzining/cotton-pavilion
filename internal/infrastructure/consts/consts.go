@@ -1,12 +1,12 @@
 package consts
 
 const (
-	SystemName = "user-center"
+	SystemName = "github.com/ningzining/cotton-pavilion"
 )
 
 // jwt
 const (
-	JwtSecret           = "cotton-user-center"
+	JwtSecret           = "cotton-github.com/ningzining/cotton-pavilion"
 	JwtSubject          = "auth"
 	JwtTemporarySubject = "temporary-auth"
 )

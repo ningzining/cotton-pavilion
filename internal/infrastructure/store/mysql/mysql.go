@@ -1,15 +1,15 @@
 package mysql
 
 import (
+	"github.com/ningzining/cotton-pavilion/internal/domain/model"
+	"github.com/ningzining/cotton-pavilion/internal/domain/repository"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/store"
+	"github.com/ningzining/cotton-pavilion/pkg/logger"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"sync"
 	"time"
-	"user-center/internal/domain/model"
-	"user-center/internal/domain/repository"
-	"user-center/internal/infrastructure/store"
-	"user-center/pkg/logger"
 )
 
 type Repository struct {

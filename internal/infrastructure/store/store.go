@@ -1,6 +1,6 @@
 package store
 
-import "user-center/internal/domain/repository"
+import "github.com/ningzining/cotton-pavilion/internal/domain/repository"
 
 var client Factory
 

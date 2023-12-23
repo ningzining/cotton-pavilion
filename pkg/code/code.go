@@ -1,7 +1,7 @@
 package code
 
 import (
-	"user-center/pkg/errors"
+	"github.com/ningzining/cotton-pavilion/pkg/errors"
 )
 
 type ErrCode struct {

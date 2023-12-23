@@ -1,22 +1,15 @@
 package third_party
 
 import (
-	"github.com/spf13/viper"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/config"
 	"strings"
 	"testing"
-	"user-center/internal/infrastructure/config"
 )
 
 func TestUpload(t *testing.T) {
 	config.LoadConfig()
 
-	ossConfig := OssConfig{
-		Bucket:          viper.GetString("oss.bucket"),
-		Endpoint:        viper.GetString("oss.Endpoint"),
-		AccessKeyID:     viper.GetString("oss.AccessKeyId"),
-		AccessKeySecret: viper.GetString("oss.AccessKeySecret"),
-	}
-	ossClient, err := NewOssClient(ossConfig)
+	ossClient, err := NewOssClient(nil)
 	if err != nil {
 		t.Error(err)
 		return

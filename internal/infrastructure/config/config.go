@@ -1,9 +1,9 @@
 package config
 
 import (
+	"github.com/ningzining/cotton-pavilion/pkg/logger"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"user-center/pkg/logger"
 )
 
 func LoadConfig() {

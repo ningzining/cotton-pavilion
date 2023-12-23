@@ -2,28 +2,27 @@ package interfaces
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ningzining/cotton-pavilion/internal/application"
+	"github.com/ningzining/cotton-pavilion/internal/application/types"
+	"github.com/ningzining/cotton-pavilion/internal/domain/model/enum"
+	"github.com/ningzining/cotton-pavilion/internal/domain/service"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/cache/qr_code_conn_cache"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/store"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/util/wsutil"
+	"github.com/ningzining/cotton-pavilion/pkg/code"
+	"github.com/ningzining/cotton-pavilion/pkg/errors"
+	"github.com/ningzining/cotton-pavilion/pkg/logger"
+	"github.com/ningzining/cotton-pavilion/pkg/response"
 	"time"
-	"user-center/internal/application"
-	"user-center/internal/application/types"
-	"user-center/internal/domain/model/enum"
-	"user-center/internal/domain/service"
-	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
-	"user-center/internal/infrastructure/store"
-	"user-center/internal/infrastructure/third_party"
-	"user-center/internal/infrastructure/util/wsutil"
-	"user-center/pkg/code"
-	"user-center/pkg/errors"
-	"user-center/pkg/logger"
-	"user-center/pkg/response"
 )
 
 type UserHandler struct {
 	Application application.Application
 }
 
-func NewUserHandler(store store.Factory, service service.Service, oss third_party.Oss) *UserHandler {
+func NewUserHandler(store store.Factory, service service.Service) *UserHandler {
 	return &UserHandler{
-		Application: application.NewApplication(store, service, oss),
+		Application: application.NewApplication(store, service),
 	}
 }
 

@@ -2,6 +2,7 @@ package third_party
 
 import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/spf13/viper"
 	"io"
 )
 
@@ -20,7 +21,15 @@ type OssConfig struct {
 	AccessKeySecret string
 }
 
-func NewOssClient(cfg OssConfig) (*OssClient, error) {
+func NewOssClient(cfg *OssConfig) (*OssClient, error) {
+	if cfg == nil {
+		cfg = &OssConfig{
+			Bucket:          viper.GetString("oss.Bucket"),
+			Endpoint:        viper.GetString("oss.Endpoint"),
+			AccessKeyID:     viper.GetString("oss.AccessKeyId"),
+			AccessKeySecret: viper.GetString("oss.AccessKeySecret"),
+		}
+	}
 	client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
 	if err != nil {
 		return nil, err

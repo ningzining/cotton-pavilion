@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"user-center/internal/domain/model"
+	"github.com/ningzining/cotton-pavilion/internal/domain/model"
 )
 
 type UserRepository interface {

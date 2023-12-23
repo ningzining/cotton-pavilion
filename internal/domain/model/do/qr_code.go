@@ -1,8 +1,8 @@
 package do
 
 import (
+	"github.com/ningzining/cotton-pavilion/internal/domain/model/enum"
 	"time"
-	"user-center/internal/domain/model/enum"
 )
 
 type QrCode struct {

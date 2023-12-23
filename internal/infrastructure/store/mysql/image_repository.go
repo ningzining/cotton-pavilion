@@ -1,9 +1,9 @@
 package mysql
 
 import (
+	"github.com/ningzining/cotton-pavilion/internal/domain/model"
+	"github.com/ningzining/cotton-pavilion/internal/domain/repository"
 	"gorm.io/gorm"
-	"user-center/internal/domain/model"
-	"user-center/internal/domain/repository"
 )
 
 type ImageRepository struct {

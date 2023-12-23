@@ -2,16 +2,16 @@ package application
 
 import (
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/ningzining/cotton-pavilion/internal/application/types"
+	"github.com/ningzining/cotton-pavilion/internal/domain/model"
+	"github.com/ningzining/cotton-pavilion/internal/domain/service"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/consts"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/store"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/util/cryptoutil"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/util/jwtutil"
+	"github.com/ningzining/cotton-pavilion/pkg/code"
+	"github.com/ningzining/cotton-pavilion/pkg/errors"
 	"time"
-	"user-center/internal/application/types"
-	"user-center/internal/domain/model"
-	"user-center/internal/domain/service"
-	"user-center/internal/infrastructure/consts"
-	"user-center/internal/infrastructure/store"
-	"user-center/internal/infrastructure/util/cryptoutil"
-	"user-center/internal/infrastructure/util/jwtutil"
-	"user-center/pkg/code"
-	"user-center/pkg/errors"
 )
 
 type UserApplication interface {

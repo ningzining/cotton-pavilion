@@ -2,14 +2,14 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/cache/redis_cache"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/config"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/store"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/store/mysql"
+	"github.com/ningzining/cotton-pavilion/internal/interfaces/middleware"
+	"github.com/ningzining/cotton-pavilion/pkg/logger"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"user-center/internal/infrastructure/cache/redis_cache"
-	"user-center/internal/infrastructure/config"
-	"user-center/internal/infrastructure/store"
-	"user-center/internal/infrastructure/store/mysql"
-	"user-center/internal/interfaces/middleware"
-	"user-center/pkg/logger"
 )
 
 type Server struct {

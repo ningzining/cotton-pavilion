@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/consts"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/util/jwtutil"
+	"github.com/ningzining/cotton-pavilion/pkg/code"
+	"github.com/ningzining/cotton-pavilion/pkg/errors"
+	"github.com/ningzining/cotton-pavilion/pkg/response"
 	"strings"
-	"user-center/internal/infrastructure/consts"
-	"user-center/internal/infrastructure/util/jwtutil"
-	"user-center/pkg/code"
-	"user-center/pkg/errors"
-	"user-center/pkg/response"
 )
 
 func JwtMiddleware() gin.HandlerFunc {

@@ -1,9 +1,8 @@
 package application
 
 import (
-	"user-center/internal/domain/service"
-	"user-center/internal/infrastructure/store"
-	"user-center/internal/infrastructure/third_party"
+	"github.com/ningzining/cotton-pavilion/internal/domain/service"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/store"
 )
 
 type Application interface {
@@ -14,14 +13,12 @@ type Application interface {
 type app struct {
 	Store   store.Factory
 	Service service.Service
-	Oss     third_party.Oss
 }
 
-func NewApplication(store store.Factory, service service.Service, oss third_party.Oss) Application {
+func NewApplication(store store.Factory, service service.Service) Application {
 	return &app{
 		Store:   store,
 		Service: service,
-		Oss:     oss,
 	}
 }
 
@@ -30,5 +27,5 @@ func (a app) UserApplication() UserApplication {
 }
 
 func (a app) ImageApplication() ImageApplication {
-	return newImageApplication(a.Store, a.Oss)
+	return newImageApplication(a.Store)
 }

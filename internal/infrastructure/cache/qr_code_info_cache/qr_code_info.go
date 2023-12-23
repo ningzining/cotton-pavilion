@@ -1,10 +1,10 @@
 package qr_code_info_cache
 
 import (
+	"github.com/ningzining/cotton-pavilion/internal/domain/model/do"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/util/timerutil"
 	"sync"
 	"time"
-	"user-center/internal/domain/model/do"
-	"user-center/internal/infrastructure/util/timerutil"
 )
 
 func init() {

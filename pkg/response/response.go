@@ -2,10 +2,10 @@ package response
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ningzining/cotton-pavilion/pkg/code"
+	"github.com/ningzining/cotton-pavilion/pkg/errors"
 	"log"
 	"net/http"
-	"user-center/pkg/code"
-	"user-center/pkg/errors"
 )
 
 type Result struct {

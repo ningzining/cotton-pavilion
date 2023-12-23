@@ -1,8 +1,8 @@
 package main
 
 import (
-	"user-center/internal/infrastructure/server"
-	"user-center/internal/interfaces/router"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/server"
+	"github.com/ningzining/cotton-pavilion/internal/interfaces/router"
 )
 
 func main() {

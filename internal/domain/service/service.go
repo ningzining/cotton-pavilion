@@ -1,6 +1,6 @@
 package service
 
-import "user-center/internal/infrastructure/store"
+import "github.com/ningzining/cotton-pavilion/internal/infrastructure/store"
 
 type Service interface {
 	QrCodeService() QrCodeService

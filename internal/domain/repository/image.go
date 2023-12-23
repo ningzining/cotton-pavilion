@@ -1,6 +1,6 @@
 package repository
 
-import "user-center/internal/domain/model"
+import "github.com/ningzining/cotton-pavilion/internal/domain/model"
 
 type ImageRepository interface {
 	Save(image *model.Image) error

@@ -4,12 +4,12 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/ningzining/cotton-pavilion/internal/domain/model/do"
+	"github.com/ningzining/cotton-pavilion/internal/domain/model/enum"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/cache/qr_code_conn_cache"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/cache/qr_code_info_cache"
 	"strings"
 	"time"
-	"user-center/internal/domain/model/do"
-	"user-center/internal/domain/model/enum"
-	"user-center/internal/infrastructure/cache/qr_code_conn_cache"
-	"user-center/internal/infrastructure/cache/qr_code_info_cache"
 )
 
 type QrCodeService interface {

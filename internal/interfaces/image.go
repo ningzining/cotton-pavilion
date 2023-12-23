@@ -2,23 +2,22 @@ package interfaces
 
 import (
 	"github.com/gin-gonic/gin"
-	"user-center/internal/application"
-	"user-center/internal/application/types"
-	"user-center/internal/domain/service"
-	"user-center/internal/infrastructure/consts"
-	"user-center/internal/infrastructure/store"
-	"user-center/internal/infrastructure/third_party"
-	"user-center/internal/infrastructure/util/jwtutil"
-	"user-center/pkg/response"
+	"github.com/ningzining/cotton-pavilion/internal/application"
+	"github.com/ningzining/cotton-pavilion/internal/application/types"
+	"github.com/ningzining/cotton-pavilion/internal/domain/service"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/consts"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/store"
+	"github.com/ningzining/cotton-pavilion/internal/infrastructure/util/jwtutil"
+	"github.com/ningzining/cotton-pavilion/pkg/response"
 )
 
 type ImageHandler struct {
 	Application application.Application
 }
 
-func NewImageHandler(store store.Factory, service service.Service, oss third_party.Oss) *ImageHandler {
+func NewImageHandler(store store.Factory, service service.Service) *ImageHandler {
 	return &ImageHandler{
-		Application: application.NewApplication(store, service, oss),
+		Application: application.NewApplication(store, service),
 	}
 }
 
