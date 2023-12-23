@@ -43,7 +43,7 @@ func init() {
 	register(ErrPageNotFind, http.StatusNotFound, "接口不存在")
 
 	// 通用错误信息
-	register(ErrDatabase, http.StatusOK, "数据库异常")
+	register(ErrDatabase, http.StatusOK, "数据库操作异常")
 
 	// 通用模块错误信息
 	register(ErrPasswordIncorrect, http.StatusOK, "密码不正确,请重新输入")
